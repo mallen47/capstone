@@ -109,7 +109,9 @@ contract AMM is ReentrancyGuard {
         view
         returns(uint256 token2Amount)    
     {
-        uint256 token1After = token1Balance + _token1Amount;
+        // Apply 0.3% trading fee (997/1000 = 99.7% goes to pricing)
+        uint256 token1AfterFee = _token1Amount * 997 / 1000;
+        uint256 token1After = token1Balance + token1AfterFee;
         uint256 token2After = K / token1After;
         token2Amount = token2Balance - token2After;
 
@@ -127,7 +129,9 @@ contract AMM is ReentrancyGuard {
         view
         returns(uint256 token1Amount)    
     {
-        uint256 token2After = token2Balance + _token2Amount;
+        // Apply 0.3% trading fee (997/1000 = 99.7% goes to pricing)
+        uint256 token2AfterFee = _token2Amount * 997 / 1000;
+        uint256 token2After = token2Balance + token2AfterFee;
         uint256 token1After = K / token2After;
         token1Amount = token1Balance - token1After;
 
@@ -159,11 +163,13 @@ contract AMM is ReentrancyGuard {
             // Do swap
             // 1. Transfer token1 tokens out of user wallet to contract
             token1.transferFrom(msg.sender, address(this), _token1Amount);
-            // 2. Update contract's token1 balance
+            // 2. Update contract's token1 balance (includes fee!)
             token1Balance += _token1Amount;
             // 3. Update contract's token2 balance
             token2Balance -= token2Amount;
-            // 4. Transfer token2 tokens from contract to user wallet
+            // 4. Update K to reflect fee accumulation
+            K = token1Balance * token2Balance;
+            // 5. Transfer token2 tokens from contract to user wallet
             token2.transfer(msg.sender, token2Amount);
 
             // Emit event
@@ -197,13 +203,15 @@ contract AMM is ReentrancyGuard {
             require(token1Amount >= _minToken1Amount, "Insufficient output amount");
             
             // Do swap
-            // 1. Transfer token1 tokens out of user wallet to contract
+            // 1. Transfer token2 tokens out of user wallet to contract
             token2.transferFrom(msg.sender, address(this), _token2Amount);
-            // 2. Update contract's token1 balance
+            // 2. Update contract's token2 balance (includes fee!)
             token2Balance += _token2Amount;
             // 3. Update contract's token1 balance
             token1Balance -= token1Amount;
-            // 4. Transfer token1 tokens from contract to user wallet
+            // 4. Update K to reflect fee accumulation
+            K = token1Balance * token2Balance;
+            // 5. Transfer token1 tokens from contract to user wallet
             token1.transfer(msg.sender, token1Amount);
 
             // Emit event

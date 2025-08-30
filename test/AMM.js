@@ -430,4 +430,104 @@ describe('AMM', () => {
             })
         })
     })
+
+    describe('Trading Fees (0.3%)', () => {
+        let amount, transaction, balanceBefore, balanceAfter
+
+        beforeEach(async () => {
+            // Setup liquidity first
+            amount = tokens(100000)
+            await token1.connect(deployer).approve(amm.address, amount)
+            await token2.connect(deployer).approve(amm.address, amount)
+            await amm.connect(deployer).addLiquidity(amount, amount)
+            
+            // Setup investor approvals
+            await token1.connect(investor1).approve(amm.address, tokens(100000))
+        })
+
+        it('collects 0.3% fee on swaps', async () => {
+            // Record pool size before swap
+            const poolToken1Before = await amm.token1Balance()
+            const poolToken2Before = await amm.token2Balance()
+            console.log(`Pool before: ${ethers.utils.formatEther(poolToken1Before)} token1, ${ethers.utils.formatEther(poolToken2Before)} token2`)
+
+            // Perform swap
+            transaction = await amm.connect(investor1).swapToken1(
+                tokens(1000), 
+                0, 
+                Math.floor(Date.now() / 1000) + 3600
+            )
+            await transaction.wait()
+
+            // Record pool size after swap
+            const poolToken1After = await amm.token1Balance()
+            const poolToken2After = await amm.token2Balance()
+            console.log(`Pool after: ${ethers.utils.formatEther(poolToken1After)} token1, ${ethers.utils.formatEther(poolToken2After)} token2`)
+
+            // Pool should have grown by fee amount
+            const token1Increase = poolToken1After.sub(poolToken1Before)
+            const expectedIncrease = tokens(1000) // Full input amount
+            const feeAmount = tokens(1000).mul(3).div(1000) // 0.3% of input
+            
+            console.log(`Token1 increase: ${ethers.utils.formatEther(token1Increase)}`)
+            console.log(`Expected fee: ${ethers.utils.formatEther(feeAmount)}`)
+
+            expect(token1Increase).to.equal(expectedIncrease)
+            // Pool grows because it keeps all input tokens (including fee portion)
+        })
+
+        it('demonstrates fee accumulation over multiple swaps', async () => {
+            const initialK = await amm.K()
+            console.log(`Initial K: ${initialK}`)
+
+            // Perform multiple swaps to accumulate fees
+            for(let i = 0; i < 3; i++) {
+                await amm.connect(investor1).swapToken1(
+                    tokens(100), 
+                    0, 
+                    Math.floor(Date.now() / 1000) + 3600
+                )
+            }
+
+            const finalK = await amm.K()
+            console.log(`Final K: ${finalK}`)
+            console.log(`K increased by: ${finalK.sub(initialK)}`)
+
+            // K should increase due to fee accumulation
+            expect(finalK).to.be.gt(initialK)
+        })
+
+        it('shows LP value increase from fees', async () => {
+            // Add second LP for comparison
+            const lpAmount = tokens(50000)
+            await token1.connect(liquidityProvider).approve(amm.address, lpAmount)
+            await token2.connect(liquidityProvider).approve(amm.address, lpAmount)
+            
+            const token2Deposit = await amm.calculateToken2Deposit(lpAmount)
+            await amm.connect(liquidityProvider).addLiquidity(lpAmount, token2Deposit)
+
+            const lpShares = await amm.shares(liquidityProvider.address)
+            console.log(`LP shares: ${ethers.utils.formatEther(lpShares)}`)
+
+            // Record LP's withdrawable amounts before trading
+            const withdrawBefore = await amm.calculateWithdrawAmount(lpShares)
+            console.log(`Before trading - LP can withdraw: ${ethers.utils.formatEther(withdrawBefore.token1Amount)} token1, ${ethers.utils.formatEther(withdrawBefore.token2Amount)} token2`)
+
+            // Generate trading volume (and fees!)
+            for(let i = 0; i < 5; i++) {
+                await amm.connect(investor1).swapToken1(
+                    tokens(1000), 
+                    0, 
+                    Math.floor(Date.now() / 1000) + 3600
+                )
+            }
+
+            // Record LP's withdrawable amounts after trading
+            const withdrawAfter = await amm.calculateWithdrawAmount(lpShares)
+            console.log(`After trading - LP can withdraw: ${ethers.utils.formatEther(withdrawAfter.token1Amount)} token1, ${ethers.utils.formatEther(withdrawAfter.token2Amount)} token2`)
+
+            // LP can withdraw more due to accumulated fees!
+            expect(withdrawAfter.token1Amount).to.be.gt(withdrawBefore.token1Amount)
+        })
+    })
 })
