@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.20;
 
-import "hardhat/console.sol";
 import "./Token.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -28,7 +27,15 @@ contract AMM is ReentrancyGuard {
         uint256 timestamp
     );
 
-    event liquidityRemoved(
+    event LiquidityAdded(
+        address user,
+        uint256 shareAmount,
+        uint256 token1Amount,
+        uint256 token2Amount,
+        uint256 timestamp
+    );
+
+    event LiquidityRemoved(
         address user,
         uint256 shareAmount,
         uint256 token1Amount,
@@ -73,6 +80,9 @@ contract AMM is ReentrancyGuard {
         // Update shares
         totalShares += share;
         shares[msg.sender] += share;
+
+        // Emit event
+        emit LiquidityAdded(msg.sender, share, _token1Amount, _token2Amount, block.timestamp);
     }
 
     // Compute token1 deposit relative to amount of token2 deposit
@@ -236,6 +246,7 @@ contract AMM is ReentrancyGuard {
         token1.transfer(msg.sender, token1Amount);
         token2.transfer(msg.sender, token2Amount);
 
-        emit liquidityRemoved(msg.sender, _share, token1Amount, token2Amount, block.timestamp);
+        emit LiquidityRemoved(msg.sender, _share, token1Amount, token2Amount, block.timestamp);
+
     }
 }

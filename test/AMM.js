@@ -293,7 +293,7 @@ describe('AMM', () => {
           transaction = await amm.connect(liquidityProvider).removeLiquidity(shares(50))
           await transaction.wait()
 
-          await expect(transaction).to.emit(amm, 'liquidityRemoved')
+          await expect(transaction).to.emit(amm, 'LiquidityRemoved')
             .withArgs(
               liquidityProvider.address,              
               shares(50),
@@ -317,6 +317,24 @@ describe('AMM', () => {
           // AMM pool has 100 total shares
           expect(await amm.totalShares()).to.equal(shares(100))
 
+        })
+
+        it('emits LiquidityAdded event', async () => {
+          // Setup initial liquidity
+          amount = tokens(100000)
+          await token1.connect(deployer).approve(amm.address, amount)
+          await token2.connect(deployer).approve(amm.address, amount)
+          
+          transaction = await amm.connect(deployer).addLiquidity(amount, amount)
+          
+          await expect(transaction).to.emit(amm, 'LiquidityAdded')
+            .withArgs(
+              deployer.address,
+              tokens(100), // Initial shares for 100k tokens
+              amount,
+              amount,
+              (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp
+            )
         })      
     })
 
