@@ -1,10 +1,11 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 import "hardhat/console.sol";
 import "./Token.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract AMM {
+contract AMM is ReentrancyGuard {
 
     Token public token1;
     Token public token2;
@@ -24,6 +25,14 @@ contract AMM {
         uint256 tokenGetAmount,
         uint256 token1Balance,
         uint256 token2Balance,
+        uint256 timestamp
+    );
+
+    event liquidityRemoved(
+        address user,
+        uint256 shareAmount,
+        uint256 token1Amount,
+        uint256 token2Amount,
         uint256 timestamp
     );
 
@@ -120,11 +129,22 @@ contract AMM {
         require(token1Amount < token1Balance, "Swap cannot exceed pool balance");
     }
 
-    function swapToken1(uint256 _token1Amount) 
+    function swapToken1(
+        uint256 _token1Amount,
+        uint256 _minToken2Amount,
+        uint256 _deadline
+    ) 
         external 
+        nonReentrant
         returns(uint256 token2Amount) {
+            // Check deadline
+            require(block.timestamp <= _deadline, "Transaction expired");
+            
             // Calculate Token2 amount            
             token2Amount = calculateToken1Swap(_token1Amount);
+            
+            // Check slippage protection
+            require(token2Amount >= _minToken2Amount, "Insufficient output amount");
 
             // Do swap
             // 1. Transfer token1 tokens out of user wallet to contract
@@ -149,11 +169,23 @@ contract AMM {
             );
     }
 
-    function swapToken2(uint256 _token2Amount) 
+    function swapToken2(
+        uint256 _token2Amount,
+        uint256 _minToken1Amount,
+        uint256 _deadline
+    ) 
         external 
+        nonReentrant
         returns(uint256 token1Amount) {
+            // Check deadline
+            require(block.timestamp <= _deadline, "Transaction expired");
+            
             // Calculate Token1 amount            
             token1Amount = calculateToken2Swap(_token2Amount);
+            
+            // Check slippage protection
+            require(token1Amount >= _minToken1Amount, "Insufficient output amount");
+            
             // Do swap
             // 1. Transfer token1 tokens out of user wallet to contract
             token2.transferFrom(msg.sender, address(this), _token2Amount);
@@ -191,6 +223,7 @@ contract AMM {
     // Removes liquidity from the pool
     function removeLiquidity(uint256 _share)
         external
+        nonReentrant
         returns(uint256 token1Amount, uint256 token2Amount)
     {
         require(_share <= shares[msg.sender], "Cannot withdraw shares in excess of allotted amount");
@@ -202,5 +235,7 @@ contract AMM {
         K = token1Balance * token2Balance;
         token1.transfer(msg.sender, token1Amount);
         token2.transfer(msg.sender, token2Amount);
+
+        emit liquidityRemoved(msg.sender, _share, token1Amount, token2Amount, block.timestamp);
     }
 }

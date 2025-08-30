@@ -146,7 +146,7 @@ describe('AMM', () => {
           console.log(`Estimated Token2 amount investor1 will receive after swap: ${ethers.utils.formatEther(estimate)}\n`)
 
           // swap token1 for token2
-          transaction = await amm.connect(investor1).swapToken1(tokens(1))
+          transaction = await amm.connect(investor1).swapToken1(tokens(1), 0, Math.floor(Date.now() / 1000) + 3600)
           await transaction.wait()
 
           // check swap event
@@ -187,7 +187,7 @@ describe('AMM', () => {
           console.log(`Estimated Token2 amount investor1 will receive after swap: ${ethers.utils.formatEther(estimate)}\n`)
 
           // investor1 swaps another single token
-          transaction = await amm.connect(investor1).swapToken1(tokens(1))
+          transaction = await amm.connect(investor1).swapToken1(tokens(1), 0, Math.floor(Date.now() / 1000) + 3600)
           await transaction.wait()
 
           // check investor1 balance after second swap
@@ -215,7 +215,7 @@ describe('AMM', () => {
           console.log(`Estimated Token2 amount investor1 will receive after swap: ${ethers.utils.formatEther(estimate)}\n`)
 
           // investor1 swaps a large amount of tokens
-          transaction = await amm.connect(investor1).swapToken1(tokens(1000))
+          transaction = await amm.connect(investor1).swapToken1(tokens(1000), 0, Math.floor(Date.now() / 1000) + 3600)
           await transaction.wait()
 
           // check investor1 balance after second swap
@@ -246,7 +246,7 @@ describe('AMM', () => {
           console.log(`Estimated token1 amount investor2 will recieve: ${ethers.utils.formatEther(estimate)}`)
 
           // Investor2 swaps 1 token2 token
-          transaction = await amm.connect(investor2).swapToken2(tokens(1))
+          transaction = await amm.connect(investor2).swapToken2(tokens(1), 0, Math.floor(Date.now() / 1000) + 3600)
           await transaction.wait()
 
           // check swap event
@@ -286,9 +286,21 @@ describe('AMM', () => {
           balance = await token2.balanceOf(liquidityProvider.address)
           console.log(`LP token2 balance before removing funds: ${ethers.utils.formatEther(balance)}`)
 
+          // Calculate token amounts before removing liquidity
+          let tokenAmounts = await amm.calculateWithdrawAmount(shares(50))
+
           // LP removes liquidity from AMM pool
           transaction = await amm.connect(liquidityProvider).removeLiquidity(shares(50))
           await transaction.wait()
+
+          await expect(transaction).to.emit(amm, 'liquidityRemoved')
+            .withArgs(
+              liquidityProvider.address,              
+              shares(50),
+              tokenAmounts.token1Amount,
+              tokenAmounts.token2Amount,
+              (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp
+          )
 
           balance = await token1.balanceOf(liquidityProvider.address)
           console.log(`LP token1 balance after removing funds: ${ethers.utils.formatEther(balance)}`)
@@ -306,5 +318,98 @@ describe('AMM', () => {
           expect(await amm.totalShares()).to.equal(shares(100))
 
         })      
+    })
+
+    describe('User Protection Mechanisms', () => {
+        let amount, estimate
+        
+        beforeEach(async () => {
+            // Setup liquidity first
+            amount = tokens(100000)
+            await token1.connect(deployer).approve(amm.address, amount)
+            await token2.connect(deployer).approve(amm.address, amount)
+            await amm.connect(deployer).addLiquidity(amount, amount)
+            
+            // Setup investor approvals
+            await token1.connect(investor1).approve(amm.address, tokens(100000))
+            await token2.connect(investor2).approve(amm.address, tokens(100000))
+        })
+
+        describe('Slippage Protection', () => {
+            it('reverts when swapToken1 output is below minimum', async () => {
+                estimate = await amm.calculateToken1Swap(tokens(1))
+                console.log(`Estimated output: ${ethers.utils.formatEther(estimate)}`)
+                
+                // Demand MORE than possible - should revert
+                const tooHighMinimum = estimate.add(tokens(1))
+                
+                await expect(
+                    amm.connect(investor1).swapToken1(
+                        tokens(1), 
+                        tooHighMinimum, 
+                        Math.floor(Date.now() / 1000) + 3600
+                    )
+                ).to.be.revertedWith("Insufficient output amount")
+            })
+
+            it('reverts when swapToken2 output is below minimum', async () => {
+                estimate = await amm.calculateToken2Swap(tokens(1))
+                console.log(`Estimated output: ${ethers.utils.formatEther(estimate)}`)
+                
+                // Demand MORE than possible - should revert
+                const tooHighMinimum = estimate.add(tokens(1))
+                
+                await expect(
+                    amm.connect(investor2).swapToken2(
+                        tokens(1), 
+                        tooHighMinimum, 
+                        Math.floor(Date.now() / 1000) + 3600
+                    )
+                ).to.be.revertedWith("Insufficient output amount")
+            })
+
+            it('succeeds when swapToken1 output meets minimum', async () => {
+                estimate = await amm.calculateToken1Swap(tokens(1))
+                
+                // Accept slightly less - should succeed
+                const acceptableMinimum = estimate.sub(tokens(0.01))
+                
+                await expect(
+                    amm.connect(investor1).swapToken1(
+                        tokens(1), 
+                        acceptableMinimum, 
+                        Math.floor(Date.now() / 1000) + 3600
+                    )
+                ).to.not.be.reverted
+            })
+        })
+
+        describe('Deadline Protection', () => {
+            it('reverts when transaction is past deadline', async () => {
+                // Set deadline in the past
+                const pastDeadline = Math.floor(Date.now() / 1000) - 3600
+                
+                await expect(
+                    amm.connect(investor1).swapToken1(
+                        tokens(1), 
+                        0, 
+                        pastDeadline
+                    )
+                ).to.be.revertedWith("Transaction expired")
+            })
+
+            it('succeeds when transaction is before deadline', async () => {
+                // Set deadline in the future
+                const futureDeadline = Math.floor(Date.now() / 1000) + 3600
+                
+                await expect(
+                    amm.connect(investor1).swapToken1(
+                        tokens(1), 
+                        0, 
+                        futureDeadline
+                    )
+                ).to.not.be.reverted
+            })
+        })
     })
 })
