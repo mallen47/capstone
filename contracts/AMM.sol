@@ -14,6 +14,7 @@ contract AMM is ReentrancyGuard {
     uint256 public K;
     uint256 public totalShares;
     uint256 constant PRECISION = 10**18;
+    uint256 public constant MINIMUM_LIQUIDITY = 1000; // Permanently locked liquidity
     mapping(address => uint256) public shares;
 
     event Swap(
@@ -63,7 +64,10 @@ contract AMM is ReentrancyGuard {
         // Issue shares
         uint256 share;
         if(totalShares == 0) {
-            share = 100 * PRECISION;
+            // First liquidity provider: lock minimum liquidity permanently
+            require(_token1Amount > MINIMUM_LIQUIDITY && _token2Amount > MINIMUM_LIQUIDITY, 
+                    "Initial liquidity must exceed minimum lock");
+            share = 100 * PRECISION - MINIMUM_LIQUIDITY; // User gets shares minus locked amount
         } else {
             require(
                 (totalShares * _token1Amount * token2Balance) == (totalShares * _token2Amount * token1Balance),
@@ -78,8 +82,14 @@ contract AMM is ReentrancyGuard {
         K = token1Balance * token2Balance;
 
         // Update shares
-        totalShares += share;
-        shares[msg.sender] += share;
+        if(totalShares == 0) {
+            // Include locked liquidity in total shares for first deposit
+            totalShares = 100 * PRECISION;
+            shares[msg.sender] = share; // User gets reduced amount due to lock
+        } else {
+            totalShares += share;
+            shares[msg.sender] += share;
+        }
 
         // Emit event
         emit LiquidityAdded(msg.sender, share, _token1Amount, _token2Amount, block.timestamp);
@@ -238,6 +248,51 @@ contract AMM is ReentrancyGuard {
         token2Amount = (_share * token2Balance) / totalShares;
     }
 
+    // =============================================================
+    // PRICE ORACLE FUNCTIONS
+    // =============================================================
+
+    // Returns current price of token1 in terms of token2 (with 18 decimals precision)
+    function getPrice() external view returns (uint256 price) {
+        require(token1Balance > 0 && token2Balance > 0, "Pool not initialized");
+        price = (token2Balance * PRECISION) / token1Balance;
+    }
+
+    // Returns current pool reserves for external protocols
+    function getReserves() external view returns (uint256 reserve0, uint256 reserve1) {
+        reserve0 = token1Balance;
+        reserve1 = token2Balance;
+    }
+
+    // Returns the underlying token amounts for a given number of LP shares
+    function getLPTokenValue(uint256 _shares) external view returns (uint256 token1Amount, uint256 token2Amount) {
+        require(totalShares > 0, "No liquidity in pool");
+        token1Amount = (_shares * token1Balance) / totalShares;
+        token2Amount = (_shares * token2Balance) / totalShares;
+    }
+
+    // Returns total pool liquidity (K value)
+    function getTotalLiquidity() external view returns (uint256 liquidity) {
+        liquidity = K;
+    }
+
+    // Returns current trading volume capacity (useful for other protocols)
+    function getPoolInfo() external view returns (
+        uint256 reserve0,
+        uint256 reserve1, 
+        uint256 totalShares_,
+        uint256 kValue
+    ) {
+        reserve0 = token1Balance;
+        reserve1 = token2Balance;
+        totalShares_ = totalShares;
+        kValue = K;
+    }
+
+    // =============================================================
+    // LIQUIDITY MANAGEMENT
+    // =============================================================
+
     // Removes liquidity from the pool
     function removeLiquidity(uint256 _share)
         external
@@ -245,6 +300,10 @@ contract AMM is ReentrancyGuard {
         returns(uint256 token1Amount, uint256 token2Amount)
     {
         require(_share <= shares[msg.sender], "Cannot withdraw shares in excess of allotted amount");
+        
+        // Prevent total liquidity drainage
+        require(totalShares - _share >= MINIMUM_LIQUIDITY, "Cannot drain pool below minimum liquidity");
+        
         (token1Amount, token2Amount) = calculateWithdrawAmount(_share);
         shares[msg.sender] -= _share;
         totalShares -= _share;
