@@ -49,51 +49,9 @@ contract AMM is ReentrancyGuard {
         token2 = _token2;
     }
 
-    function addLiquidity(uint256 _token1Amount, uint256 _token2Amount) external {
-        // Deposit Tokens
-        require(
-            token1.transferFrom(msg.sender, address(this), _token1Amount),
-            "Failed to transfer token1"   
-        );
-
-        require(
-            token2.transferFrom(msg.sender, address(this), _token2Amount),
-            "Failed to transfer token2"
-        );
-        
-        // Issue shares
-        uint256 share;
-        if(totalShares == 0) {
-            // First liquidity provider: lock minimum liquidity permanently
-            require(_token1Amount > MINIMUM_LIQUIDITY && _token2Amount > MINIMUM_LIQUIDITY, 
-                    "Initial liquidity must exceed minimum lock");
-            share = 100 * PRECISION - MINIMUM_LIQUIDITY; // User gets shares minus locked amount
-        } else {
-            require(
-                (totalShares * _token1Amount * token2Balance) == (totalShares * _token2Amount * token1Balance),
-                "Must provide equal token amounts"
-                );
-            share = totalShares * _token1Amount / token1Balance;
-        }
-
-        // Manage pool
-        token1Balance += _token1Amount;      
-        token2Balance += _token2Amount;
-        K = token1Balance * token2Balance;
-
-        // Update shares
-        if(totalShares == 0) {
-            // Include locked liquidity in total shares for first deposit
-            totalShares = 100 * PRECISION;
-            shares[msg.sender] = share; // User gets reduced amount due to lock
-        } else {
-            totalShares += share;
-            shares[msg.sender] += share;
-        }
-
-        // Emit event
-        emit LiquidityAdded(msg.sender, share, _token1Amount, _token2Amount, block.timestamp);
-    }
+    /////////////////////////
+    // Swaps
+    /////////////////////////
 
     // Compute token1 deposit relative to amount of token2 deposit
     function calculateToken1Deposit(uint256 _token2Amount)
@@ -101,7 +59,8 @@ contract AMM is ReentrancyGuard {
         view
         returns(uint256 token1Amount)
     {
-        token1Amount = (token1Balance * _token2Amount) / token2Balance;        
+        require(totalShares > 0, "Pool not initialized");
+        token1Amount = (token1Balance * _token2Amount) / token2Balance;
     }
     
     // Compute token2 deposit relative to amount of token1 deposit
@@ -110,6 +69,7 @@ contract AMM is ReentrancyGuard {
         view 
         returns(uint256 token2Amount) 
     {
+        require(totalShares > 0, "Pool not initialized");
         token2Amount = (token2Balance * _token1Amount) / token1Balance;
     }
 
@@ -293,7 +253,57 @@ contract AMM is ReentrancyGuard {
     // LIQUIDITY MANAGEMENT
     // =============================================================
 
-    // Removes liquidity from the pool
+    function addLiquidity(uint256 _token1Amount, uint256 _token2Amount) external {
+        // Deposit Tokens
+        require(
+            token1.transferFrom(msg.sender, address(this), _token1Amount),
+            "Failed to transfer token1"   
+        );
+
+        require(
+            token2.transferFrom(msg.sender, address(this), _token2Amount),
+            "Failed to transfer token2"
+        );
+        
+        // Issue shares
+        uint256 share;
+        if(totalShares == 0) {
+            // First liquidity provider: lock minimum liquidity permanently
+            require(_token1Amount > MINIMUM_LIQUIDITY && _token2Amount > MINIMUM_LIQUIDITY, 
+                    "Initial liquidity must exceed minimum lock");
+            share = 100 * PRECISION - MINIMUM_LIQUIDITY; // User gets shares minus locked amount
+        } else {
+            // Check proportional deposits with precision tolerance for fractional pool ratios
+            uint256 leftSide = totalShares * _token1Amount * token2Balance;
+            uint256 rightSide = totalShares * _token2Amount * token1Balance;
+            
+            // Allow small precision differences (within 0.001% tolerance)
+            uint256 tolerance = leftSide > rightSide ? leftSide / 100000 : rightSide / 100000;
+            uint256 difference = leftSide > rightSide ? leftSide - rightSide : rightSide - leftSide;
+            
+            require(difference <= tolerance, "Must provide proportional token amounts");
+            share = totalShares * _token1Amount / token1Balance;
+        }
+
+        // Manage pool
+        token1Balance += _token1Amount;      
+        token2Balance += _token2Amount;
+        K = token1Balance * token2Balance;
+
+        // Update shares
+        if(totalShares == 0) {
+            // Include locked liquidity in total shares for first deposit
+            totalShares = 100 * PRECISION;
+            shares[msg.sender] = share; // User gets reduced amount due to lock
+        } else {
+            totalShares += share;
+            shares[msg.sender] += share;
+        }
+
+        // Emit event
+        emit LiquidityAdded(msg.sender, share, _token1Amount, _token2Amount, block.timestamp);
+    }
+
     function removeLiquidity(uint256 _share)
         external
         nonReentrant
