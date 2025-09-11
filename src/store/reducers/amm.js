@@ -9,7 +9,7 @@ export const amm = createSlice({
   },
   reducers: {
     setContract: (state, action) => {
-      state.contracts = action.payload
+      state.contract = action.payload
     },
   },
 })
