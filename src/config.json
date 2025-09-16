@@ -9,5 +9,16 @@
     "amm": {
       "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
     }
+  },
+  "11155111": {
+    "dappCoin": {
+      "address": "0xd22571db19a5a80c1DfEB26A8db82864c3EBB091"
+    },
+    "usdk": {
+      "address": "0xc95b013d6f3D79193AbFb4505d7c080CEE41aEff"
+    },
+    "amm": {
+      "address": "0xB8a7f013eaA2c2DFa7CA2080FFcE07A91d8b5E30"
+    }
   }
 }
