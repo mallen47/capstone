@@ -78,3 +78,27 @@ export const loadBalances = async (amm, tokens, account, dispatch) => {
   const shares = await amm.shares(account)
   dispatch(sharesLoaded(ethers.utils.formatUnits(shares.toString(), "ether")))
 }
+
+////////////////////////////////////
+// Swap tokens
+
+export const swap = async (provider, amm, token, symbol, amount, dispatch) => {
+  let transaction
+
+  const signer = await provider.getSigner()
+
+  transaction = await token.connect(signer).approve(amm.address, amount)
+  await transaction.wait()
+
+  // Set deadline (1 hour from now)
+  const deadline = Math.floor(Date.now() / 1000) + 3600
+
+  if (symbol === "DPC") {
+    // For DPC -> USDK swap, set minimum tokens to 0 (no slippage protection for now)
+    transaction = await amm.connect(signer).swapToken1(amount, 0, deadline)
+  } else {
+    // For USDK -> DPC swap, set minimum tokens to 0 (no slippage protection for now)
+    transaction = await amm.connect(signer).swapToken2(amount, 0, deadline)
+  }
+  await transaction.wait()
+}
