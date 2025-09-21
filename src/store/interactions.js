@@ -1,7 +1,13 @@
 import { ethers } from "ethers"
 import { setAccount, setProvider, setNetwork } from "./reducers/provider"
 import { setContracts, setSymbols, balancesLoaded } from "./reducers/tokens"
-import { setContract, sharesLoaded } from "./reducers/amm"
+import {
+  setContract,
+  sharesLoaded,
+  swapRequest,
+  swapSuccess,
+  swapFail,
+} from "./reducers/amm"
 import TOKEN_ABI from "../abis/Token.json"
 import AMM_ABI from "../abis/AMM.json"
 import config from "../config.json"
@@ -83,22 +89,30 @@ export const loadBalances = async (amm, tokens, account, dispatch) => {
 // Swap tokens
 
 export const swap = async (provider, amm, token, symbol, amount, dispatch) => {
-  let transaction
+  try {
+    dispatch(swapRequest())
 
-  const signer = await provider.getSigner()
+    let transaction
 
-  transaction = await token.connect(signer).approve(amm.address, amount)
-  await transaction.wait()
+    const signer = await provider.getSigner()
 
-  // Set deadline (1 hour from now)
-  const deadline = Math.floor(Date.now() / 1000) + 3600
+    transaction = await token.connect(signer).approve(amm.address, amount)
+    await transaction.wait()
 
-  if (symbol === "DPC") {
-    // For DPC -> USDK swap, set minimum tokens to 0 (no slippage protection for now)
-    transaction = await amm.connect(signer).swapToken1(amount, 0, deadline)
-  } else {
-    // For USDK -> DPC swap, set minimum tokens to 0 (no slippage protection for now)
-    transaction = await amm.connect(signer).swapToken2(amount, 0, deadline)
+    // Set deadline (1 hour from now)
+    const deadline = Math.floor(Date.now() / 1000) + 3600
+
+    if (symbol === "DPC") {
+      // For DPC -> USDK swap, set minimum tokens to 0 (no slippage protection for now)
+      transaction = await amm.connect(signer).swapToken1(amount, 0, deadline)
+    } else {
+      // For USDK -> DPC swap, set minimum tokens to 0 (no slippage protection for now)
+      transaction = await amm.connect(signer).swapToken2(amount, 0, deadline)
+    }
+    await transaction.wait()
+
+    dispatch(swapSuccess(transaction.hash))
+  } catch (error) {
+    dispatch(swapFail())
   }
-  await transaction.wait()
 }

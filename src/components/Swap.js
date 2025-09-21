@@ -8,7 +8,9 @@ import Dropdown from "react-bootstrap/Dropdown"
 import DropdownButton from "react-bootstrap/DropdownButton"
 import Button from "react-bootstrap/Button"
 import Row from "react-bootstrap/Row"
-import { swap } from "../store/interactions"
+import Spinner from "react-bootstrap/Spinner"
+import { swap, loadBalances } from "../store/interactions"
+import Alert from "./Alert"
 
 const Swap = () => {
   const [inputToken, setInputToken] = useState(null)
@@ -16,13 +18,20 @@ const Swap = () => {
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
   const [price, setPrice] = useState(0)
+  const [showAlert, setShowAlert] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
   const account = useSelector(state => state.provider.account)
-  const amm = useSelector(state => state.amm.contract)
   const tokens = useSelector(state => state.tokens.contracts)
   const symbols = useSelector(state => state.tokens.symbols)
   const balances = useSelector(state => state.tokens.balances)
+  const amm = useSelector(state => state.amm.contract)
+  const isSwapping = useSelector(state => state.amm.swapping.isSwapping)
+  const isSuccess = useSelector(state => state.amm.swapping.isSuccess)
+  const transactionHash = useSelector(
+    state => state.amm.swapping.transactionHash
+  )
+
   const dispatch = useDispatch()
 
   const inputHandler = async e => {
@@ -55,6 +64,9 @@ const Swap = () => {
 
   const swapHandler = async e => {
     e.preventDefault()
+
+    setShowAlert(false)
+
     if (inputToken === outputToken) {
       window.alert("Invalid token pair")
       return
@@ -72,6 +84,11 @@ const Swap = () => {
     } else {
       await swap(provider, amm, tokens[1], inputToken, _inputAmount, dispatch)
     }
+
+    await loadBalances(amm, tokens, account, dispatch)
+    await getPrice()
+
+    setShowAlert(true)
   }
 
   const getPrice = async () => {
@@ -117,7 +134,7 @@ const Swap = () => {
   }, [inputToken, outputToken, amm])
 
   return (
-    <div>
+    <div className="swap-container">
       <Card style={{ maxWidth: "450px" }} className="mx-auto px-4">
         {account ? (
           <Form
@@ -203,7 +220,14 @@ const Swap = () => {
               </InputGroup>
             </Row>
             <Row className="my-3">
-              <Button type="submit">Swap</Button>
+              {isSwapping ? (
+                <Spinner
+                  animation="border"
+                  style={{ display: "block", margin: "0 auto" }}
+                />
+              ) : (
+                <Button type="submit">Swap</Button>
+              )}
               <Form.Text muted>
                 Exchange Rate:{" "}
                 {price === 0
@@ -221,6 +245,31 @@ const Swap = () => {
           </p>
         )}
       </Card>
+
+      {isSwapping ? (
+        <Alert
+          message={"Swap Pending..."}
+          transactionHash={null}
+          variant={"info"}
+          setShowAlert={setShowAlert}
+        />
+      ) : isSuccess && showAlert ? (
+        <Alert
+          message={"Swap Successful!"}
+          transactionHash={transactionHash}
+          variant={"success"}
+          setShowAlert={setShowAlert}
+        />
+      ) : !isSuccess && showAlert ? (
+        <Alert
+          message={"Swap Failed"}
+          transactionHash={null}
+          variant={"danger"}
+          setShowAlert={setShowAlert}
+        />
+      ) : (
+        <></>
+      )}
     </div>
   )
 }
