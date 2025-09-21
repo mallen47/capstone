@@ -41,8 +41,15 @@ function App() {
     })
 
     // Initiate contracts
-    await loadTokens(provider, chainId, dispatch)
-    await loadAMM(provider, chainId, dispatch)
+    console.log("Loading tokens for chainId:", chainId)
+    try {
+      await loadTokens(provider, chainId, dispatch)
+      console.log("Tokens loaded successfully")
+      await loadAMM(provider, chainId, dispatch)
+      console.log("AMM loaded successfully")
+    } catch (error) {
+      console.error("Error loading contracts:", error)
+    }
   }
 
   useEffect(() => {
