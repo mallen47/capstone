@@ -5,6 +5,7 @@ import logo from "../logo.png"
 import { useSelector, useDispatch } from "react-redux"
 import Blockies from "react-blockies"
 import { loadAccount, loadBalances } from "../store/interactions"
+import { useTheme } from "../contexts/ThemeContext"
 import config from "../config.json"
 
 const Navigation = () => {
@@ -13,6 +14,7 @@ const Navigation = () => {
   const chainId = useSelector(state => state.provider.chainId)
   const amm = useSelector(state => state.amm.contract)
   const dispatch = useDispatch()
+  const { theme, toggleTheme } = useTheme()
 
   const connectHandler = async () => {
     const account = await loadAccount(dispatch)
@@ -39,6 +41,22 @@ const Navigation = () => {
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
         <div className="d-flex justify-content-end mt-3">
+          {/* Theme Toggle Button */}
+          <Button
+            variant="outline-secondary"
+            onClick={toggleTheme}
+            className="me-3"
+            aria-label={`Switch to ${
+              theme === "light" ? "dark" : "light"
+            } mode`}
+          >
+            <i
+              className={
+                theme === "light" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill"
+              }
+            ></i>
+          </Button>
+
           <Form.Select
             aria-label="Network Selector"
             value={config[chainId] ? `0x${chainId.toString(16)}` : `0`}
