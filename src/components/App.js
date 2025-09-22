@@ -18,14 +18,17 @@ import {
   loadTokens,
   loadAMM,
 } from "../store/interactions"
+import { useTheme } from "../contexts/ThemeContext"
 import Swap from "./Swap"
 import Deposit from "./Deposit"
 import Withdraw from "./Withdraw"
 import Charts from "./Charts"
 import Tabs from "./Tabs"
 
-function App() {
+// App content component that uses theme context
+function AppContent() {
   const dispatch = useDispatch()
+  const { theme } = useTheme()
 
   const loadBlockchainData = async () => {
     // Initiate provider
@@ -63,35 +66,42 @@ function App() {
   }, [])
 
   return (
-    <ThemeProvider>
-      <Container>
-        <HashRouter>
-          <Navigation />
-          <hr />
-          <Tabs />
-          <Routes>
-            <Route exact path="/" element={<Swap />} />
-            <Route path="/deposit" element={<Deposit />} />
-            <Route path="/withdraw" element={<Withdraw />} />
-            <Route path="/charts" element={<Charts />} />
-          </Routes>
-        </HashRouter>
+    <Container>
+      <HashRouter>
+        <Navigation />
+        <hr />
+        <Tabs />
+        <Routes>
+          <Route exact path="/" element={<Swap />} />
+          <Route path="/deposit" element={<Deposit />} />
+          <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/charts" element={<Charts />} />
+        </Routes>
+      </HashRouter>
 
-        {/* Toast Container for notifications */}
-        <ToastContainer
-          position="bottom-right"
-          autoClose={false}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick={true}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          toastClassName="custom-toast"
-        />
-      </Container>
+      {/* Toast Container for notifications */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={false}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme={theme === 'dark' ? 'dark' : 'light'}
+        toastClassName="custom-toast"
+      />
+    </Container>
+  )
+}
+
+// Main App component that provides theme context
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
     </ThemeProvider>
   )
 }
