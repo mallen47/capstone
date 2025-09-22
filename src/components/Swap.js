@@ -10,7 +10,7 @@ import Button from "react-bootstrap/Button"
 import Row from "react-bootstrap/Row"
 import Spinner from "react-bootstrap/Spinner"
 import { swap, loadBalances } from "../store/interactions"
-import Alert from "./Alert"
+import { showToast } from "../utils/toastService"
 
 const Swap = () => {
   const [inputToken, setInputToken] = useState(null)
@@ -133,6 +133,28 @@ const Swap = () => {
     }
   }, [inputToken, outputToken, amm])
 
+  // Handle toast notifications based on swap state changes
+  useEffect(() => {
+    if (isSwapping) {
+      showToast("info", "Swap Pending...")
+    }
+  }, [isSwapping])
+
+  useEffect(() => {
+    if (isSuccess && transactionHash) {
+      showToast("success", "Swap Successful!", transactionHash)
+      // Reload balances and price after successful swap
+      loadBalances(amm, tokens, account, dispatch)
+      getPrice()
+    }
+  }, [isSuccess, transactionHash])
+
+  useEffect(() => {
+    if (showAlert && !isSuccess && !isSwapping) {
+      showToast("danger", "Swap Failed")
+    }
+  }, [showAlert, isSuccess, isSwapping])
+
   return (
     <div className="swap-container">
       <Card style={{ maxWidth: "450px" }} className="mx-auto px-4">
@@ -246,30 +268,6 @@ const Swap = () => {
         )}
       </Card>
 
-      {isSwapping ? (
-        <Alert
-          message={"Swap Pending..."}
-          transactionHash={null}
-          variant={"info"}
-          setShowAlert={setShowAlert}
-        />
-      ) : isSuccess && showAlert ? (
-        <Alert
-          message={"Swap Successful!"}
-          transactionHash={transactionHash}
-          variant={"success"}
-          setShowAlert={setShowAlert}
-        />
-      ) : !isSuccess && showAlert ? (
-        <Alert
-          message={"Swap Failed"}
-          transactionHash={null}
-          variant={"danger"}
-          setShowAlert={setShowAlert}
-        />
-      ) : (
-        <></>
-      )}
     </div>
   )
 }
