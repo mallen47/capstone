@@ -5,6 +5,9 @@ import { Container } from "react-bootstrap"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
+// Theme Provider
+import { ThemeProvider } from "../contexts/ThemeContext"
+
 // Components
 import Navigation from "./Navigation"
 import {
@@ -59,34 +62,36 @@ function App() {
   }, [])
 
   return (
-    <Container>
-      <HashRouter>
-        <Navigation />
-        <hr />
-        <Tabs />
-        <Routes>
-          <Route exact path="/" element={<Swap />} />
-          <Route path="/deposit" element={<Deposit />} />
-          <Route path="/withdraw" element={<Withdraw />} />
-          <Route path="/charts" element={<Charts />} />
-        </Routes>
-      </HashRouter>
+    <ThemeProvider>
+      <Container>
+        <HashRouter>
+          <Navigation />
+          <hr />
+          <Tabs />
+          <Routes>
+            <Route exact path="/" element={<Swap />} />
+            <Route path="/deposit" element={<Deposit />} />
+            <Route path="/withdraw" element={<Withdraw />} />
+            <Route path="/charts" element={<Charts />} />
+          </Routes>
+        </HashRouter>
 
-      {/* Toast Container for notifications */}
-      <ToastContainer
-        position="bottom-right"
-        autoClose={false}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={true}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        toastClassName="custom-toast"
-      />
-    </Container>
+        {/* Toast Container for notifications */}
+        <ToastContainer
+          position="bottom-right"
+          autoClose={false}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={true}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          toastClassName="custom-toast"
+        />
+      </Container>
+    </ThemeProvider>
   )
 }
 
