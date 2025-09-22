@@ -31,17 +31,18 @@ const Swap = () => {
   const transactionHash = useSelector(
     state => state.amm.swapping.transactionHash
   )
+  const errorMessage = useSelector(state => state.amm.swapping.errorMessage)
 
   const dispatch = useDispatch()
 
   const inputHandler = async e => {
     if (!inputToken || !outputToken) {
-      window.alert("Please select a token")
+      showToast("warning", "Please select a token")
       return
     }
 
     if (inputToken === outputToken) {
-      window.alert("Invalid token pair")
+      showToast("warning", "Invalid token pair")
       return
     }
 
@@ -68,17 +69,17 @@ const Swap = () => {
     setShowAlert(false)
 
     if (inputToken === outputToken) {
-      window.alert("Invalid token pair")
+      showToast("warning", "Invalid token pair")
       return
     }
 
     if (!tokens || tokens.length < 2) {
-      window.alert("Tokens not loaded yet. Please wait and try again.")
+      showToast("warning", "Tokens not loaded yet. Please wait and try again.")
       return
     }
 
     if (!inputAmount || inputAmount === 0 || inputAmount === "0") {
-      window.alert("Please enter an amount to swap")
+      showToast("warning", "Please enter an amount to swap")
       return
     }
 
@@ -152,10 +153,10 @@ const Swap = () => {
   }, [isSuccess, transactionHash])
 
   useEffect(() => {
-    if (showAlert && !isSuccess && !isSwapping) {
-      showToast("danger", "Swap Failed")
+    if (showAlert && !isSuccess && !isSwapping && errorMessage) {
+      showToast("danger", errorMessage)
     }
-  }, [showAlert, isSuccess, isSwapping])
+  }, [showAlert, isSuccess, isSwapping, errorMessage])
 
   return (
     <div className="swap-container">
