@@ -2,6 +2,8 @@ import { useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { HashRouter, Routes, Route } from "react-router-dom"
 import { Container } from "react-bootstrap"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 // Components
 import Navigation from "./Navigation"
@@ -69,6 +71,21 @@ function App() {
           <Route path="/charts" element={<Charts />} />
         </Routes>
       </HashRouter>
+
+      {/* Toast Container for notifications */}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={false}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        toastClassName="custom-toast"
+      />
     </Container>
   )
 }

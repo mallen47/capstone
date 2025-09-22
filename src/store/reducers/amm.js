@@ -10,6 +10,7 @@ export const amm = createSlice({
       isSwapping: false,
       isSuccess: false,
       transactionHash: null,
+      errorMessage: null,
     },
   },
   reducers: {
@@ -23,6 +24,7 @@ export const amm = createSlice({
       state.swapping.isSwapping = true
       state.swapping.isSuccess = false
       state.swapping.transactionHash = null
+      state.swapping.errorMessage = null
     },
     swapSuccess: (state, action) => {
       state.swapping.isSwapping = false
@@ -33,6 +35,7 @@ export const amm = createSlice({
       state.swapping.isSwapping = false
       state.swapping.isSuccess = false
       state.swapping.transactionHash = null
+      state.swapping.errorMessage = action.payload
     },
   },
 })
