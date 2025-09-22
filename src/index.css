@@ -1,12 +1,49 @@
+/* Base theme styling */
+:root {
+  color-scheme: light dark;
+}
+
 .swap-container {
   position: relative;
   min-height: 100vh;
 }
 
-/* Container for the swap page to enable relative positioning */
-.swap-container {
-  position: relative;
-  min-height: 100vh;
+/* Dark theme base styling for better compatibility */
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-bs-theme="dark"] body {
+  background-color: #212529;
+  color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .card {
+  background-color: #343a40;
+  border-color: #495057;
+}
+
+[data-bs-theme="dark"] .form-control {
+  background-color: #495057;
+  border-color: #6c757d;
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .form-control:focus {
+  background-color: #495057;
+  border-color: #86b7fe;
+  color: #fff;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #fff;
 }
 
 
@@ -16,29 +53,58 @@
   font-family: inherit;
 }
 
-.toast-success {
+/* Light theme toast styling */
+[data-bs-theme="light"] .toast-success {
   border-left: 4px solid #198754;
 }
 
-.toast-info {
+[data-bs-theme="light"] .toast-info {
   border-left: 4px solid #0dcaf0;
 }
 
-.toast-error {
+[data-bs-theme="light"] .toast-error {
   border-left: 4px solid #dc3545;
 }
 
-.toast-warning {
+[data-bs-theme="light"] .toast-warning {
   border-left: 4px solid #ffc107;
 }
 
-/* Etherscan link styling */
-.custom-toast a {
+/* Dark theme toast styling */
+[data-bs-theme="dark"] .toast-success {
+  border-left: 4px solid #198754;
+}
+
+[data-bs-theme="dark"] .toast-info {
+  border-left: 4px solid #0dcaf0;
+}
+
+[data-bs-theme="dark"] .toast-error {
+  border-left: 4px solid #dc3545;
+}
+
+[data-bs-theme="dark"] .toast-warning {
+  border-left: 4px solid #ffc107;
+}
+
+/* Etherscan link styling - Light theme */
+[data-bs-theme="light"] .custom-toast a {
   color: #0d6efd;
   font-weight: 500;
 }
 
-.custom-toast a:hover {
+[data-bs-theme="light"] .custom-toast a:hover {
   color: #0a58ca;
+  text-decoration: underline !important;
+}
+
+/* Etherscan link styling - Dark theme */
+[data-bs-theme="dark"] .custom-toast a {
+  color: #6ea8fe;
+  font-weight: 500;
+}
+
+[data-bs-theme="dark"] .custom-toast a:hover {
+  color: #9ec5fe;
   text-decoration: underline !important;
 }

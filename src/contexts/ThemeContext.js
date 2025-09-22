@@ -45,6 +45,10 @@ export const ThemeProvider = ({ children }) => {
     
     // Apply theme to document
     document.documentElement.setAttribute('data-bs-theme', newTheme)
+    
+    // Debug logging
+    console.log('Theme changed to:', newTheme)
+    console.log('data-bs-theme attribute:', document.documentElement.getAttribute('data-bs-theme'))
   }
 
   // Set specific theme
