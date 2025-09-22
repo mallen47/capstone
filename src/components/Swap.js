@@ -18,7 +18,6 @@ const Swap = () => {
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
   const [price, setPrice] = useState(0)
-  const [showAlert, setShowAlert] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
   const account = useSelector(state => state.provider.account)
@@ -78,8 +77,6 @@ const Swap = () => {
   const swapHandler = async e => {
     e.preventDefault()
 
-    setShowAlert(false)
-
     if (inputToken === outputToken) {
       showToast("warning", "Invalid token pair")
       return
@@ -102,8 +99,6 @@ const Swap = () => {
     } else {
       await swap(provider, amm, tokens[1], inputToken, _inputAmount, dispatch)
     }
-
-    setShowAlert(true)
   }
 
   const getPrice = async () => {
@@ -165,10 +160,10 @@ const Swap = () => {
   }, [isSuccess, transactionHash])
 
   useEffect(() => {
-    if (showAlert && !isSuccess && !isSwapping && errorMessage) {
+    if (!isSuccess && !isSwapping && errorMessage) {
       showToast("danger", errorMessage)
     }
-  }, [showAlert, isSuccess, isSwapping, errorMessage])
+  }, [isSuccess, isSwapping, errorMessage])
 
   return (
     <div className="swap-container">

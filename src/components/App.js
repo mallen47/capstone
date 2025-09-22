@@ -71,7 +71,7 @@ function App() {
           <Route path="/charts" element={<Charts />} />
         </Routes>
       </HashRouter>
-      
+
       {/* Toast Container for notifications */}
       <ToastContainer
         position="bottom-right"

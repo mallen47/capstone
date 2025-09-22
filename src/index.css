@@ -9,15 +9,6 @@
   min-height: 100vh;
 }
 
-/* Legacy alert styles - will be removed after toast migration */
-.alert {
-  max-width: 300px;
-  position: absolute;
-  bottom: 100px;
-  right: 100px;
-  padding: 50px;
-  z-index: 1000;
-}
 
 /* Toast customization for Bootstrap integration */
 .custom-toast {
