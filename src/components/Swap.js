@@ -85,9 +85,6 @@ const Swap = () => {
       await swap(provider, amm, tokens[1], inputToken, _inputAmount, dispatch)
     }
 
-    await loadBalances(amm, tokens, account, dispatch)
-    await getPrice()
-
     setShowAlert(true)
   }
 
