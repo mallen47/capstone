@@ -48,18 +48,30 @@ const Swap = () => {
 
     const inputValue = e.target.value
     setInputAmount(inputValue)
-    if (inputToken === "DPC") {
-      const result = await amm.calculateToken1Swap(
-        ethers.utils.parseUnits(inputValue, "ether")
-      )
-      const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
-      setOutputAmount(_token2Amount.toString())
-    } else {
-      const result = await amm.calculateToken2Swap(
-        ethers.utils.parseUnits(inputValue, "ether")
-      )
-      const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
-      setOutputAmount(_token1Amount.toString())
+    
+    // Handle empty or invalid input values
+    if (!inputValue || inputValue === "" || isNaN(inputValue) || parseFloat(inputValue) <= 0) {
+      setOutputAmount(0)
+      return
+    }
+    
+    try {
+      if (inputToken === "DPC") {
+        const result = await amm.calculateToken1Swap(
+          ethers.utils.parseUnits(inputValue, "ether")
+        )
+        const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        setOutputAmount(_token2Amount.toString())
+      } else {
+        const result = await amm.calculateToken2Swap(
+          ethers.utils.parseUnits(inputValue, "ether")
+        )
+        const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        setOutputAmount(_token1Amount.toString())
+      }
+    } catch (error) {
+      console.error("Error calculating swap amount:", error)
+      setOutputAmount(0)
     }
   }
 
