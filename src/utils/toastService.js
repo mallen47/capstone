@@ -1,6 +1,9 @@
 import { toast } from 'react-toastify'
 import React from 'react'
 
+// Track pending toasts to dismiss them when final status is reached
+let pendingToastId = null
+
 // Custom toast content component for transaction-related toasts
 const ToastContent = ({ message, txHash, showTxHash = true }) => (
   <div>
@@ -22,29 +25,45 @@ const ToastContent = ({ message, txHash, showTxHash = true }) => (
   </div>
 )
 
-// Success toast - auto-dismisses after 3 seconds with slide animation
+// Success toast - manual dismiss, persistent to allow Etherscan link access
 export const showSuccessToast = (message, txHash = null) => {
+  // Dismiss any pending toast when success appears
+  if (pendingToastId) {
+    toast.dismiss(pendingToastId)
+    pendingToastId = null
+  }
+  
   toast.success(<ToastContent message={message} txHash={txHash} />, {
-    autoClose: 3000,
-    transition: toast.TRANSITIONS.SLIDE,
+    autoClose: false,
     className: 'toast-success',
   })
 }
 
-// Info toast - manual dismiss, no animation
+// Info toast - manual dismiss, track if it's a pending transaction
 export const showInfoToast = (message, txHash = null) => {
-  toast.info(<ToastContent message={message} txHash={txHash} showTxHash={false} />, {
+  const toastId = toast.info(<ToastContent message={message} txHash={txHash} showTxHash={false} />, {
     autoClose: false,
-    closeButton: true,
     className: 'toast-info',
   })
+  
+  // Track pending toasts (like "Swap Pending...") so they can be auto-dismissed
+  if (message.includes('Pending')) {
+    pendingToastId = toastId
+  }
+  
+  return toastId
 }
 
 // Error toast - manual dismiss, no animation  
 export const showErrorToast = (message, txHash = null) => {
+  // Dismiss any pending toast when error appears
+  if (pendingToastId) {
+    toast.dismiss(pendingToastId)
+    pendingToastId = null
+  }
+  
   toast.error(<ToastContent message={message} txHash={txHash} showTxHash={false} />, {
     autoClose: false,
-    closeButton: true,
     className: 'toast-error',
   })
 }
@@ -53,7 +72,6 @@ export const showErrorToast = (message, txHash = null) => {
 export const showWarningToast = (message, txHash = null) => {
   toast.warning(<ToastContent message={message} txHash={txHash} showTxHash={false} />, {
     autoClose: false,
-    closeButton: true,
     className: 'toast-warning',
   })
 }

@@ -77,7 +77,12 @@ const Swap = () => {
       return
     }
 
-    const _inputAmount = ethers.utils.parseUnits(inputAmount, "ether")
+    if (!inputAmount || inputAmount === 0 || inputAmount === "0") {
+      window.alert("Please enter an amount to swap")
+      return
+    }
+
+    const _inputAmount = ethers.utils.parseUnits(inputAmount.toString(), "ether")
 
     if (inputToken === "DPC") {
       await swap(provider, amm, tokens[0], inputToken, _inputAmount, dispatch)
