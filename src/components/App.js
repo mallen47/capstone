@@ -3,9 +3,7 @@ import { useDispatch } from "react-redux"
 import { HashRouter, Routes, Route } from "react-router-dom"
 import { Container } from "react-bootstrap"
 import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-
-// Components
+import { ThemeProvider } from "../contexts/ThemeContext"
 import Navigation from "./Navigation"
 import {
   loadAccount,
@@ -14,14 +12,19 @@ import {
   loadTokens,
   loadAMM,
 } from "../store/interactions"
+import { useTheme } from "../contexts/ThemeContext"
 import Swap from "./Swap"
 import Deposit from "./Deposit"
 import Withdraw from "./Withdraw"
 import Charts from "./Charts"
 import Tabs from "./Tabs"
+import "react-toastify/dist/ReactToastify.css"
+import "bootstrap-icons/font/bootstrap-icons.css"
 
-function App() {
+// App content component that uses theme context
+function AppContent() {
   const dispatch = useDispatch()
+  const { theme } = useTheme()
 
   const loadBlockchainData = async () => {
     // Initiate provider
@@ -71,8 +74,6 @@ function App() {
           <Route path="/charts" element={<Charts />} />
         </Routes>
       </HashRouter>
-
-      {/* Toast Container for notifications */}
       <ToastContainer
         position="bottom-right"
         autoClose={false}
@@ -83,10 +84,19 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
+        theme={theme === "dark" ? "dark" : "light"}
         toastClassName="custom-toast"
       />
     </Container>
+  )
+}
+
+// Main App component that provides theme context
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   )
 }
 
