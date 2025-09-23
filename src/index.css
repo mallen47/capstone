@@ -8,7 +8,7 @@
   min-height: 100vh;
 }
 
-/* Dark theme base styling for better compatibility */
+/* Dark theme base styling */
 [data-bs-theme="dark"] {
   color-scheme: dark;
 }
@@ -37,7 +37,6 @@
 
 [data-bs-theme="dark"] .btn-outline-secondary {
   color: #6c757d;
-  border-color: #6c757d;
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary:hover {
@@ -46,6 +45,82 @@
   color: #fff;
 }
 
+/* Light mode: Theme toggle button */
+[data-bs-theme="light"] .theme-toggle-btn {
+  color: #0d6efd !important;
+  border-color: #dee2e6 !important;
+  background-color: transparent !important;
+}
+
+[data-bs-theme="light"] .theme-toggle-btn:hover {
+  color: #0a58ca !important;
+  border-color: #dee2e6 !important;
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+[data-bs-theme="light"] .theme-toggle-btn:focus {
+  color: #0d6efd !important;
+  background-color: transparent !important;
+}
+
+/* Dark mode: Theme toggle button */
+[data-bs-theme="dark"] .theme-toggle-btn {
+  color: white !important;
+  border-color: #495057 !important;
+  background-color: #0d6efd !important;
+}
+
+[data-bs-theme="dark"] .theme-toggle-btn:hover {
+  color: white !important;
+  border-color: #495057 !important;
+  background-color: #0a58ca !important;
+}
+
+[data-bs-theme="dark"] .theme-toggle-btn:focus {
+  color: white !important;
+  background-color: #0d6efd !important;
+}
+
+/* Unified focus styling - matches Form.Select (network selector) */
+.btn:focus,
+.theme-toggle-btn:focus,
+.nav-link:focus,
+button:focus {
+  border-color: #86b7fe !important;
+  outline: 0 !important;
+  border-color: #495057 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Dark theme unified focus */
+[data-bs-theme="dark"] .btn:focus,
+[data-bs-theme="dark"] .theme-toggle-btn:focus,
+[data-bs-theme="dark"] .nav-link:focus,
+[data-bs-theme="dark"] button:focus {
+  border-color: #86b7fe !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Nav pills active state */
+.nav-pills .nav-link.active {
+  border: solid 1px;
+  border-color: #495057 !important;
+}
+
+/* Dark theme nav pills active state */
+[data-bs-theme="dark"] .nav-pills .nav-link.active {
+  border-color: #495057 !important;
+}
+
+/* Icon size adjustments */
+.theme-toggle-btn .bi-sun-fill {
+  font-size: 1.1em;
+}
+
+.theme-toggle-btn .bi-moon-stars-fill {
+  font-size: 1em;
+}
 
 /* Toast customization for Bootstrap integration */
 .custom-toast {

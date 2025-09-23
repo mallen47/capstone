@@ -41,11 +41,10 @@ const Navigation = () => {
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
         <div className="d-flex justify-content-end mt-3">
-          {/* Theme Toggle Button */}
           <Button
             variant="outline-secondary"
             onClick={toggleTheme}
-            className="me-3"
+            className="me-3 theme-toggle-btn"
             aria-label={`Switch to ${
               theme === "light" ? "dark" : "light"
             } mode`}

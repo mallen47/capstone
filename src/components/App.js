@@ -3,13 +3,7 @@ import { useDispatch } from "react-redux"
 import { HashRouter, Routes, Route } from "react-router-dom"
 import { Container } from "react-bootstrap"
 import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import "bootstrap-icons/font/bootstrap-icons.css"
-
-// Theme Provider
 import { ThemeProvider } from "../contexts/ThemeContext"
-
-// Components
 import Navigation from "./Navigation"
 import {
   loadAccount,
@@ -24,6 +18,8 @@ import Deposit from "./Deposit"
 import Withdraw from "./Withdraw"
 import Charts from "./Charts"
 import Tabs from "./Tabs"
+import "react-toastify/dist/ReactToastify.css"
+import "bootstrap-icons/font/bootstrap-icons.css"
 
 // App content component that uses theme context
 function AppContent() {
@@ -78,8 +74,6 @@ function AppContent() {
           <Route path="/charts" element={<Charts />} />
         </Routes>
       </HashRouter>
-
-      {/* Toast Container for notifications */}
       <ToastContainer
         position="bottom-right"
         autoClose={false}
@@ -90,7 +84,7 @@ function AppContent() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme={theme === 'dark' ? 'dark' : 'light'}
+        theme={theme === "dark" ? "dark" : "light"}
         toastClassName="custom-toast"
       />
     </Container>
