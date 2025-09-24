@@ -28,15 +28,29 @@ const Deposit = () => {
   const dispatch = useDispatch()
 
   const amountHandler = async e => {
+    const inputValue = e.target.value
+    
+    // Early return for empty/invalid inputs
+    if (!inputValue || inputValue === "" || parseFloat(inputValue) <= 0) {
+      if (e.target.id === "token1") {
+        setToken1Amount(inputValue)
+        setToken2Amount(0)
+      } else {
+        setToken2Amount(inputValue)
+        setToken1Amount(0)
+      }
+      return
+    }
+
     if (e.target.id === "token1") {
-      setToken1Amount(e.target.value)
-      const _token1Amount = ethers.utils.parseUnits(e.target.value, "ether")
+      setToken1Amount(inputValue)
+      const _token1Amount = ethers.utils.parseUnits(inputValue, "ether")
       const result = await amm.calculateToken2Deposit(_token1Amount)
       const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
       setToken2Amount(_token2Amount)
     } else {
-      setToken2Amount(e.target.value)
-      const _token2Amount = ethers.utils.parseUnits(e.target.value, "ether")
+      setToken2Amount(inputValue)
+      const _token2Amount = ethers.utils.parseUnits(inputValue, "ether")
       const result = await amm.calculateToken1Deposit(_token2Amount)
       const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
       setToken1Amount(_token1Amount)
