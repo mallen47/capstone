@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"
-import { useSelector, useDispatch } from "react-redux"
 import { ethers } from "ethers"
+import { useState, useEffect, useCallback } from "react"
+import { useSelector, useDispatch } from "react-redux"
 import Card from "react-bootstrap/Card"
 import Form from "react-bootstrap/Form"
 import InputGroup from "react-bootstrap/InputGroup"
@@ -115,7 +115,7 @@ const Swap = () => {
     }
   }
 
-  const getPrice = async () => {
+  const getPrice = useCallback(async () => {
     // Early returns for invalid states
     if (!inputToken || !outputToken || inputToken === outputToken) {
       setPrice(0)
@@ -149,13 +149,13 @@ const Swap = () => {
       console.error("Error getting price:", error)
       setPrice(0)
     }
-  }
+  }, [inputToken, outputToken, amm])
 
   useEffect(() => {
     if (amm && inputToken && outputToken) {
       getPrice()
     }
-  }, [inputToken, outputToken, amm])
+  }, [inputToken, outputToken, amm, getPrice])
 
   // Handle toast notifications based on swap state changes
   useEffect(() => {
@@ -171,7 +171,7 @@ const Swap = () => {
       loadBalances(amm, tokens, account, dispatch)
       getPrice()
     }
-  }, [isSuccess, transactionHash])
+  }, [isSuccess, transactionHash, amm, tokens, account, dispatch, getPrice])
 
   useEffect(() => {
     if (!isSuccess && !isSwapping && errorMessage) {

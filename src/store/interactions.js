@@ -7,6 +7,9 @@ import {
   swapRequest,
   swapSuccess,
   swapFail,
+  depositRequest,
+  depositSuccess,
+  depositFail,
 } from "./reducers/amm"
 import TOKEN_ABI from "../abis/Token.json"
 import AMM_ABI from "../abis/AMM.json"
@@ -87,38 +90,38 @@ export const loadBalances = async (amm, tokens, account, dispatch) => {
 
 ////////////////////////////////////
 // Helper function to parse MetaMask error messages
-const parseErrorMessage = (error) => {
+const parseErrorMessage = error => {
   if (error.code === 4001) {
     return "Transaction rejected by user"
   }
-  
+
   if (error.code === -32603) {
     return "Internal error - please try again"
   }
-  
+
   // Check for specific error messages in the error string
   const errorString = error.message || error.toString()
-  
+
   if (errorString.includes("user rejected transaction")) {
     return "Transaction rejected by user"
   }
-  
+
   if (errorString.includes("insufficient funds")) {
     return "Insufficient funds for transaction"
   }
-  
+
   if (errorString.includes("gas required exceeds allowance")) {
     return "Gas limit too low"
   }
-  
+
   if (errorString.includes("execution reverted")) {
     return "Transaction reverted - check token allowance"
   }
-  
+
   if (errorString.includes("network changed")) {
     return "Network changed during transaction"
   }
-  
+
   // Default fallback for unknown errors
   return "Transaction failed - please try again"
 }
@@ -154,5 +157,43 @@ export const swap = async (provider, amm, token, symbol, amount, dispatch) => {
     console.error("Swap error:", error)
     const errorMessage = parseErrorMessage(error)
     dispatch(swapFail(errorMessage))
+  }
+}
+
+/////////////////////////////////
+// Add Liquidity
+
+export const addLiquidity = async (
+  provider,
+  amm,
+  tokens,
+  amounts,
+  dispatch
+) => {
+  try {
+    dispatch(depositRequest())
+
+    const signer = await provider.getSigner()
+
+    let transaction
+
+    transaction = await tokens[0]
+      .connect(signer)
+      .approve(amm.address, amounts[0])
+    await transaction.wait()
+
+    transaction = await tokens[1]
+      .connect(signer)
+      .approve(amm.address, amounts[1])
+    await transaction.wait()
+
+    transaction = await amm.connect(signer).addLiquidity(amounts[0], amounts[1])
+    await transaction.wait()
+
+    dispatch(depositSuccess(transaction.hash))
+  } catch (error) {
+    console.log("Deposit error:", error)
+    const errorMessage = parseErrorMessage(error)
+    dispatch(depositFail(errorMessage))
   }
 }
