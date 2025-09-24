@@ -60,8 +60,14 @@ const Deposit = () => {
   const depositHandler = async e => {
     e.preventDefault()
 
-    const _token1Amount = ethers.utils.parseUnits(token1Amount, "ether")
-    const _token2Amount = ethers.utils.parseUnits(token2Amount, "ether")
+    // Validate inputs before parsing
+    if (!token1Amount || token1Amount === "" || parseFloat(token1Amount) <= 0 ||
+        !token2Amount || token2Amount === "" || parseFloat(token2Amount) <= 0) {
+      return
+    }
+
+    const _token1Amount = ethers.utils.parseUnits(token1Amount.toString(), "ether")
+    const _token2Amount = ethers.utils.parseUnits(token2Amount.toString(), "ether")
 
     await addLiquidity(
       provider,
