@@ -47,25 +47,36 @@ const Swap = () => {
 
     const inputValue = e.target.value
     setInputAmount(inputValue)
-    
+
     // Handle empty or invalid input values
-    if (!inputValue || inputValue === "" || isNaN(inputValue) || parseFloat(inputValue) <= 0) {
+    if (
+      !inputValue ||
+      inputValue === "" ||
+      isNaN(inputValue) ||
+      parseFloat(inputValue) <= 0
+    ) {
       setOutputAmount(0)
       return
     }
-    
+
     try {
       if (inputToken === "DPC") {
         const result = await amm.calculateToken1Swap(
           ethers.utils.parseUnits(inputValue, "ether")
         )
-        const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        const _token2Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
         setOutputAmount(_token2Amount.toString())
       } else {
         const result = await amm.calculateToken2Swap(
           ethers.utils.parseUnits(inputValue, "ether")
         )
-        const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        const _token1Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
         setOutputAmount(_token1Amount.toString())
       }
     } catch (error) {
@@ -92,7 +103,10 @@ const Swap = () => {
       return
     }
 
-    const _inputAmount = ethers.utils.parseUnits(inputAmount.toString(), "ether")
+    const _inputAmount = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      "ether"
+    )
 
     if (inputToken === "DPC") {
       await swap(provider, amm, tokens[0], inputToken, _inputAmount, dispatch)
@@ -176,7 +190,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong>Input: </strong>
+                  <strong className="text-muted">BUY: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:{" "}
@@ -216,7 +230,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong>Output: </strong>
+                  <strong className="text-muted">SELL: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:
@@ -277,7 +291,6 @@ const Swap = () => {
           </p>
         )}
       </Card>
-
     </div>
   )
 }
