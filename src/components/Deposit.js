@@ -8,6 +8,7 @@ import InputGroup from "react-bootstrap/InputGroup"
 import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
 import { addLiquidity, loadBalances } from "../store/interactions"
+import { showToast } from "../utils/toastService"
 
 const Deposit = () => {
   const provider = useSelector(state => state.provider.connection)
@@ -19,17 +20,17 @@ const Deposit = () => {
   const isDepositing = useSelector(state => state.amm.depositing.isDepositing)
   const isSuccess = useSelector(state => state.amm.depositing.isSuccess)
   const transactionHash = useSelector(
-    state => state.amm.swapping.transactionHash
+    state => state.amm.depositing.transactionHash
   )
 
   const [token1Amount, setToken1Amount] = useState(0)
   const [token2Amount, setToken2Amount] = useState(0)
-
+  const errorMessage = useSelector(state => state.amm.depositing.errorMessage)
   const dispatch = useDispatch()
 
   const amountHandler = async e => {
     const inputValue = e.target.value
-    
+
     // Early return for empty/invalid inputs
     if (!inputValue || inputValue === "" || parseFloat(inputValue) <= 0) {
       if (e.target.id === "token1") {
@@ -61,13 +62,25 @@ const Deposit = () => {
     e.preventDefault()
 
     // Validate inputs before parsing
-    if (!token1Amount || token1Amount === "" || parseFloat(token1Amount) <= 0 ||
-        !token2Amount || token2Amount === "" || parseFloat(token2Amount) <= 0) {
+    if (
+      !token1Amount ||
+      token1Amount === "" ||
+      parseFloat(token1Amount) <= 0 ||
+      !token2Amount ||
+      token2Amount === "" ||
+      parseFloat(token2Amount) <= 0
+    ) {
       return
     }
 
-    const _token1Amount = ethers.utils.parseUnits(token1Amount.toString(), "ether")
-    const _token2Amount = ethers.utils.parseUnits(token2Amount.toString(), "ether")
+    const _token1Amount = ethers.utils.parseUnits(
+      token1Amount.toString(),
+      "ether"
+    )
+    const _token2Amount = ethers.utils.parseUnits(
+      token2Amount.toString(),
+      "ether"
+    )
 
     await addLiquidity(
       provider,
@@ -79,6 +92,26 @@ const Deposit = () => {
 
     await loadBalances(amm, tokens, account, dispatch)
   }
+
+  useEffect(() => {
+    if (isDepositing) {
+      showToast("info", "Deposit Pending...")
+    }
+  }, [isDepositing])
+
+  useEffect(() => {
+    if (isSuccess && transactionHash) {
+      showToast("success", "Deposit Successful!", transactionHash)
+      // Reload balances after successful deposit
+      loadBalances(amm, tokens, account, dispatch)
+    }
+  }, [isSuccess, transactionHash, amm, tokens, account, dispatch])
+
+  useEffect(() => {
+    if (!isSuccess && !isDepositing && errorMessage) {
+      showToast("danger", errorMessage)
+    }
+  }, [isSuccess, isDepositing, errorMessage])
 
   return (
     <div>
