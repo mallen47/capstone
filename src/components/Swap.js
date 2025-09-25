@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"
-import { useSelector, useDispatch } from "react-redux"
 import { ethers } from "ethers"
+import { useState, useEffect, useCallback } from "react"
+import { useSelector, useDispatch } from "react-redux"
 import Card from "react-bootstrap/Card"
 import Form from "react-bootstrap/Form"
 import InputGroup from "react-bootstrap/InputGroup"
@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button"
 import Row from "react-bootstrap/Row"
 import Spinner from "react-bootstrap/Spinner"
 import { swap, loadBalances } from "../store/interactions"
+import { swapReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
 
 const Swap = () => {
@@ -47,25 +48,36 @@ const Swap = () => {
 
     const inputValue = e.target.value
     setInputAmount(inputValue)
-    
+
     // Handle empty or invalid input values
-    if (!inputValue || inputValue === "" || isNaN(inputValue) || parseFloat(inputValue) <= 0) {
+    if (
+      !inputValue ||
+      inputValue === "" ||
+      isNaN(inputValue) ||
+      parseFloat(inputValue) <= 0
+    ) {
       setOutputAmount(0)
       return
     }
-    
+
     try {
       if (inputToken === "DPC") {
         const result = await amm.calculateToken1Swap(
           ethers.utils.parseUnits(inputValue, "ether")
         )
-        const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        const _token2Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
         setOutputAmount(_token2Amount.toString())
       } else {
         const result = await amm.calculateToken2Swap(
           ethers.utils.parseUnits(inputValue, "ether")
         )
-        const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
+        const _token1Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
         setOutputAmount(_token1Amount.toString())
       }
     } catch (error) {
@@ -92,7 +104,10 @@ const Swap = () => {
       return
     }
 
-    const _inputAmount = ethers.utils.parseUnits(inputAmount.toString(), "ether")
+    const _inputAmount = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      "ether"
+    )
 
     if (inputToken === "DPC") {
       await swap(provider, amm, tokens[0], inputToken, _inputAmount, dispatch)
@@ -101,7 +116,7 @@ const Swap = () => {
     }
   }
 
-  const getPrice = async () => {
+  const getPrice = useCallback(async () => {
     // Early returns for invalid states
     if (!inputToken || !outputToken || inputToken === outputToken) {
       setPrice(0)
@@ -135,13 +150,13 @@ const Swap = () => {
       console.error("Error getting price:", error)
       setPrice(0)
     }
-  }
+  }, [inputToken, outputToken, amm])
 
   useEffect(() => {
     if (amm && inputToken && outputToken) {
       getPrice()
     }
-  }, [inputToken, outputToken, amm])
+  }, [inputToken, outputToken, amm, getPrice])
 
   // Handle toast notifications based on swap state changes
   useEffect(() => {
@@ -156,14 +171,18 @@ const Swap = () => {
       // Reload balances and price after successful swap
       loadBalances(amm, tokens, account, dispatch)
       getPrice()
+      // Reset the success state to prevent duplicate toasts
+      dispatch(swapReset())
     }
-  }, [isSuccess, transactionHash])
+  }, [isSuccess, transactionHash, amm, tokens, account, dispatch, getPrice])
 
   useEffect(() => {
     if (!isSuccess && !isSwapping && errorMessage) {
       showToast("danger", errorMessage)
+      // Reset the error state to prevent duplicate toasts
+      dispatch(swapReset())
     }
-  }, [isSuccess, isSwapping, errorMessage])
+  }, [isSuccess, isSwapping, errorMessage, dispatch])
 
   return (
     <div className="swap-container">
@@ -176,7 +195,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong>Input: </strong>
+                  <strong className="text-muted">BUY: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:{" "}
@@ -216,7 +235,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong>Output: </strong>
+                  <strong className="text-muted">SELL: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:
@@ -277,7 +296,6 @@ const Swap = () => {
           </p>
         )}
       </Card>
-
     </div>
   )
 }
