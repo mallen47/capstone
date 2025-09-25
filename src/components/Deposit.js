@@ -121,66 +121,75 @@ const Deposit = () => {
   return (
     <div>
       <Card style={{ maxWidth: "450px" }} className="mx-auto px-4">
-        <Form
-          onSubmit={depositHandler}
-          style={{ maxWidth: "450px", margin: "50px auto" }}
-        >
-          <Row>
-            <Form.Text className="text-end my-2" muted>
-              Balance: {balances[0]}
-            </Form.Text>
-            <InputGroup>
-              <Form.Control
-                type="number"
-                placeholder="0.0"
-                min="0.0"
-                step="any"
-                id="token1"
-                onChange={e => amountHandler(e)}
-                value={token1Amount === 0 ? "" : token1Amount}
-              />
-              <InputGroup.Text
-                style={{ width: "100px" }}
-                className="justify-content-center"
-              >
-                {symbols && symbols[0]}
-              </InputGroup.Text>
-            </InputGroup>
-          </Row>
-          <Row className="my-3">
-            <Form.Text className="text-end my-2" muted>
-              Balance: {balances[1]}
-            </Form.Text>
-            <InputGroup>
-              <Form.Control
-                type="number"
-                placeholder="0.0"
-                step="any"
-                id="token2"
-                onChange={e => {
-                  amountHandler(e)
-                }}
-                value={token2Amount === 0 ? "" : token2Amount}
-              />
-              <InputGroup.Text
-                style={{ width: "100px" }}
-                className="justify-content-center"
-              >
-                {symbols && symbols[1]}
-              </InputGroup.Text>
-            </InputGroup>
-          </Row>
-          <Row className="my-4">
-            {isDepositing ? (
-              <Spinner
-                animation="border"
-                style={{ display: "block", margin: "0 auto" }}
-              />
-            ) : (
-              <Button type="submit">Deposit</Button>
-            )}
-          </Row>
-        </Form>
+        {account ? (
+          <Form
+            onSubmit={depositHandler}
+            style={{ maxWidth: "450px", margin: "50px auto" }}
+          >
+            <Row>
+              <Form.Text className="text-end my-2" muted>
+                Balance: {balances[0]}
+              </Form.Text>
+              <InputGroup>
+                <Form.Control
+                  type="number"
+                  placeholder="0.0"
+                  min="0.0"
+                  step="any"
+                  id="token1"
+                  onChange={e => amountHandler(e)}
+                  value={token1Amount === 0 ? "" : token1Amount}
+                />
+                <InputGroup.Text
+                  style={{ width: "100px" }}
+                  className="justify-content-center"
+                >
+                  {symbols && symbols[0]}
+                </InputGroup.Text>
+              </InputGroup>
+            </Row>
+            <Row className="my-3">
+              <Form.Text className="text-end my-2" muted>
+                Balance: {balances[1]}
+              </Form.Text>
+              <InputGroup>
+                <Form.Control
+                  type="number"
+                  placeholder="0.0"
+                  step="any"
+                  id="token2"
+                  onChange={e => {
+                    amountHandler(e)
+                  }}
+                  value={token2Amount === 0 ? "" : token2Amount}
+                />
+                <InputGroup.Text
+                  style={{ width: "100px" }}
+                  className="justify-content-center"
+                >
+                  {symbols && symbols[1]}
+                </InputGroup.Text>
+              </InputGroup>
+            </Row>
+            <Row className="my-4">
+              {isDepositing ? (
+                <Spinner
+                  animation="border"
+                  style={{ display: "block", margin: "0 auto" }}
+                />
+              ) : (
+                <Button type="submit">Deposit</Button>
+              )}
+            </Row>
+          </Form>
+        ) : (
+          <p
+            className="d-flex justify-content-center align-items-center"
+            style={{ height: "300px" }}
+          >
+            Please connect wallet.
+          </p>
+        )}
       </Card>
     </div>
   )
