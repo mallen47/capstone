@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button"
 import Row from "react-bootstrap/Row"
 import Spinner from "react-bootstrap/Spinner"
 import { swap, loadBalances } from "../store/interactions"
+import { swapReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
 
 const Swap = () => {
@@ -170,14 +171,18 @@ const Swap = () => {
       // Reload balances and price after successful swap
       loadBalances(amm, tokens, account, dispatch)
       getPrice()
+      // Reset the success state to prevent duplicate toasts
+      dispatch(swapReset())
     }
   }, [isSuccess, transactionHash, amm, tokens, account, dispatch, getPrice])
 
   useEffect(() => {
     if (!isSuccess && !isSwapping && errorMessage) {
       showToast("danger", errorMessage)
+      // Reset the error state to prevent duplicate toasts
+      dispatch(swapReset())
     }
-  }, [isSuccess, isSwapping, errorMessage])
+  }, [isSuccess, isSwapping, errorMessage, dispatch])
 
   return (
     <div className="swap-container">

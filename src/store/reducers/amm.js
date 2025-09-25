@@ -60,6 +60,16 @@ export const amm = createSlice({
       state.depositing.transactionHash = null
       state.depositing.errorMessage = action.payload
     },
+    swapReset: (state, action) => {
+      state.swapping.isSuccess = false
+      state.swapping.transactionHash = null
+      state.swapping.errorMessage = null
+    },
+    depositReset: (state, action) => {
+      state.depositing.isSuccess = false
+      state.depositing.transactionHash = null
+      state.depositing.errorMessage = null
+    },
   },
 })
 
@@ -72,5 +82,7 @@ export const {
   depositRequest,
   depositSuccess,
   depositFail,
+  swapReset,
+  depositReset,
 } = amm.actions
 export default amm.reducer

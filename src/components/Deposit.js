@@ -8,6 +8,7 @@ import InputGroup from "react-bootstrap/InputGroup"
 import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
 import { addLiquidity, loadBalances } from "../store/interactions"
+import { depositReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
 
 const Deposit = () => {
@@ -104,14 +105,18 @@ const Deposit = () => {
       showToast("success", "Deposit Successful!", transactionHash)
       // Reload balances after successful deposit
       loadBalances(amm, tokens, account, dispatch)
+      // Reset the success state to prevent duplicate toasts
+      dispatch(depositReset())
     }
   }, [isSuccess, transactionHash, amm, tokens, account, dispatch])
 
   useEffect(() => {
     if (!isSuccess && !isDepositing && errorMessage) {
       showToast("danger", errorMessage)
+      // Reset the error state to prevent duplicate toasts
+      dispatch(depositReset())
     }
-  }, [isSuccess, isDepositing, errorMessage])
+  }, [isSuccess, isDepositing, errorMessage, dispatch])
 
   return (
     <div>
