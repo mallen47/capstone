@@ -7,8 +7,8 @@ import Row from "react-bootstrap/Row"
 import InputGroup from "react-bootstrap/InputGroup"
 import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
-import { removeLiquidity } from "../store/interactions"
-import { depositReset } from "../store/reducers/amm"
+import { removeLiquidity, loadBalances } from "../store/interactions"
+import { withdrawReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
 
 const Withdraw = () => {
@@ -18,23 +18,78 @@ const Withdraw = () => {
   const account = useSelector(state => state.provider.account)
   const balances = useSelector(state => state.tokens.balances)
   const shares = useSelector(state => state.amm.shares)
+  const tokens = useSelector(state => state.tokens.contracts)
   const amm = useSelector(state => state.amm.contract)
   const isWithdrawing = useSelector(
     state => state.amm.withdrawing.isWithdrawing
   )
   const isSuccess = useSelector(state => state.amm.withdrawing.isSuccess)
   const transactionHash = useSelector(
-    state => state.amm.depositing.transactionHash
+    state => state.amm.withdrawing.transactionHash
   )
+  const errorMessage = useSelector(state => state.amm.withdrawing.errorMessage)
 
   const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (isWithdrawing) {
+      showToast("info", "Withdraw Pending...")
+    }
+  }, [isWithdrawing])
+
+  useEffect(() => {
+    if (isSuccess && transactionHash) {
+      showToast("success", "Withdraw Successful!", transactionHash)
+      // Reload balances after successful withdraw
+      loadBalances(amm, tokens, account, dispatch)
+      // Clear input field after successful transaction
+      setAmount(0)
+      // Reset the success state to prevent duplicate toasts
+      dispatch(withdrawReset())
+    }
+  }, [isSuccess, transactionHash, amm, tokens, account, dispatch])
+
+  useEffect(() => {
+    if (!isSuccess && !isWithdrawing && errorMessage) {
+      showToast("danger", errorMessage)
+      dispatch(withdrawReset())
+    }
+  }, [isSuccess, isWithdrawing, errorMessage, dispatch])
 
   const withdrawHandler = async e => {
     e.preventDefault()
 
-    const _shares = ethers.utils.parseUnits(amount.toString(), "ether")
+    if (!amm || !provider) {
+      showToast(
+        "warning",
+        "Contracts not loaded yet. Please wait and try again."
+      )
+      return
+    }
 
+    if (!amount || amount === "" || amount === "0") {
+      showToast("warning", "Please enter an amount to withdraw.")
+      return
+    }
+
+    if (parseFloat(amount) <= 0) {
+      showToast("warning", "Please enter a share amount greater than zero")
+      return
+    }
+
+    if (!shares || parseFloat(shares) === 0) {
+      showToast("warning", "Sorry, you have no shares available to withdraw")
+      return
+    }
+
+    if (parseFloat(amount) > parseFloat(shares)) {
+      showToast("warning", "Cannot withdraw more shares than you have")
+      return
+    }
+
+    const _shares = ethers.utils.parseUnits(amount.toString(), "ether")
     await removeLiquidity(provider, amm, _shares, dispatch)
+    return
   }
 
   return (
@@ -56,6 +111,7 @@ const Withdraw = () => {
                   min="0.0"
                   step="any"
                   id="shares"
+                  value={amount === 0 ? "" : amount}
                   onChange={e => setAmount(e.target.value)}
                 />
                 <InputGroup.Text
@@ -68,7 +124,14 @@ const Withdraw = () => {
             </Row>
 
             <Row className="my-4">
-              <Button type="submit">Withdraw</Button>
+              {isWithdrawing ? (
+                <Spinner
+                  animation="border"
+                  style={{ display: "block", margin: "0 auto" }}
+                />
+              ) : (
+                <Button type="submit">Withdraw</Button>
+              )}
             </Row>
             <hr />
             <Row>

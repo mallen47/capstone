@@ -171,6 +171,9 @@ const Swap = () => {
       // Reload balances and price after successful swap
       loadBalances(amm, tokens, account, dispatch)
       getPrice()
+      // Clear input fields after successful transaction
+      setInputAmount(0)
+      setOutputAmount(0)
       // Reset the success state to prevent duplicate toasts
       dispatch(swapReset())
     }

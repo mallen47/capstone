@@ -105,6 +105,9 @@ const Deposit = () => {
       showToast("success", "Deposit Successful!", transactionHash)
       // Reload balances after successful deposit
       loadBalances(amm, tokens, account, dispatch)
+      // Clear input fields after successful transaction
+      setToken1Amount(0)
+      setToken2Amount(0)
       // Reset the success state to prevent duplicate toasts
       dispatch(depositReset())
     }
