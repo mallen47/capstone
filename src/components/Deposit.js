@@ -1,12 +1,14 @@
 import { ethers } from "ethers"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import Card from "react-bootstrap/Card"
 import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
+import Col from "react-bootstrap/Col"
 import InputGroup from "react-bootstrap/InputGroup"
 import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
+import Badge from "react-bootstrap/Badge"
 import { addLiquidity, loadBalances } from "../store/interactions"
 import { depositReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
@@ -26,8 +28,55 @@ const Deposit = () => {
 
   const [token1Amount, setToken1Amount] = useState(0)
   const [token2Amount, setToken2Amount] = useState(0)
+  const [poolRatio, setPoolRatio] = useState(null)
+  const [isCalculating, setIsCalculating] = useState(false)
   const errorMessage = useSelector(state => state.amm.depositing.errorMessage)
   const dispatch = useDispatch()
+
+  // Get current pool ratio for display
+  const getPoolRatio = useCallback(async () => {
+    if (!amm) return
+
+    try {
+      const [token1Bal, token2Bal, totalShares] = await Promise.all([
+        amm.token1Balance(),
+        amm.token2Balance(),
+        amm.totalShares(),
+      ])
+
+      if (totalShares.gt(0)) {
+        const ratio1 = parseFloat(ethers.utils.formatEther(token1Bal))
+        const ratio2 = parseFloat(ethers.utils.formatEther(token2Bal))
+        setPoolRatio({ token1: ratio1, token2: ratio2 })
+      } else {
+        setPoolRatio(null)
+      }
+    } catch (error) {
+      console.error("Error getting pool ratio:", error)
+      setPoolRatio(null)
+    }
+  }, [amm])
+
+  // Max button handlers
+  const setMaxToken1 = () => {
+    if (balances[0]) {
+      const maxAmount = balances[0]
+      setToken1Amount(maxAmount)
+      // Trigger proportional calculation
+      const event = { target: { id: "token1", value: maxAmount } }
+      amountHandler(event)
+    }
+  }
+
+  const setMaxToken2 = () => {
+    if (balances[1]) {
+      const maxAmount = balances[1]
+      setToken2Amount(maxAmount)
+      // Trigger proportional calculation
+      const event = { target: { id: "token2", value: maxAmount } }
+      amountHandler(event)
+    }
+  }
 
   const amountHandler = async e => {
     const inputValue = e.target.value
@@ -44,18 +93,51 @@ const Deposit = () => {
       return
     }
 
-    if (e.target.id === "token1") {
-      setToken1Amount(inputValue)
-      const _token1Amount = ethers.utils.parseUnits(inputValue, "ether")
-      const result = await amm.calculateToken2Deposit(_token1Amount)
-      const _token2Amount = ethers.utils.formatUnits(result.toString(), "ether")
-      setToken2Amount(_token2Amount)
-    } else {
-      setToken2Amount(inputValue)
-      const _token2Amount = ethers.utils.parseUnits(inputValue, "ether")
-      const result = await amm.calculateToken1Deposit(_token2Amount)
-      const _token1Amount = ethers.utils.formatUnits(result.toString(), "ether")
-      setToken1Amount(_token1Amount)
+    if (!amm) {
+      showToast(
+        "warning",
+        "AMM contract not loaded yet. Please wait and try again."
+      )
+      return
+    }
+
+    try {
+      setIsCalculating(true)
+
+      if (e.target.id === "token1") {
+        setToken1Amount(inputValue)
+        const _token1Amount = ethers.utils.parseUnits(inputValue, "ether")
+        const result = await amm.calculateToken2Deposit(_token1Amount)
+        const _token2Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
+        setToken2Amount(_token2Amount)
+      } else {
+        setToken2Amount(inputValue)
+        const _token2Amount = ethers.utils.parseUnits(inputValue, "ether")
+        const result = await amm.calculateToken1Deposit(_token2Amount)
+        const _token1Amount = ethers.utils.formatUnits(
+          result.toString(),
+          "ether"
+        )
+        setToken1Amount(_token1Amount)
+      }
+    } catch (error) {
+      console.error("Error calculating proportional deposit:", error)
+      if (error.message.includes("Pool not initialized")) {
+        showToast(
+          "info",
+          "Pool not initialized yet. You can provide any amounts for the first deposit."
+        )
+      } else {
+        showToast(
+          "warning",
+          "Error calculating proportional amounts. Please check your input."
+        )
+      }
+    } finally {
+      setIsCalculating(false)
     }
   }
 
@@ -95,6 +177,12 @@ const Deposit = () => {
   }
 
   useEffect(() => {
+    if (amm) {
+      getPoolRatio()
+    }
+  }, [amm, getPoolRatio])
+
+  useEffect(() => {
     if (isDepositing) {
       showToast("info", "Deposit Pending...")
     }
@@ -129,10 +217,34 @@ const Deposit = () => {
             onSubmit={depositHandler}
             style={{ maxWidth: "450px", margin: "50px auto" }}
           >
+            {/* Pool Ratio Information */}
+            {poolRatio && (
+              <Row className="mb-3">
+                <div className="text-center">
+                  <Badge bg="info" className="p-2">
+                    Pool Ratio: {poolRatio.token1.toFixed(2)} {symbols[0]} :{" "}
+                    {poolRatio.token2.toFixed(2)} {symbols[1]}
+                  </Badge>
+                  <div className="small text-muted mt-1">
+                    ✨ Amounts are automatically calculated to maintain pool
+                    ratio
+                  </div>
+                </div>
+              </Row>
+            )}
+
             <Row>
-              <Form.Text className="text-end my-2" muted>
-                Balance: {balances[0]}
-              </Form.Text>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <Form.Text muted>Balance: {balances[0]}</Form.Text>
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={setMaxToken1}
+                  disabled={!balances[0] || parseFloat(balances[0]) === 0}
+                >
+                  Max
+                </Button>
+              </div>
               <InputGroup>
                 <Form.Control
                   type="number"
@@ -142,19 +254,29 @@ const Deposit = () => {
                   id="token1"
                   onChange={e => amountHandler(e)}
                   value={token1Amount === 0 ? "" : token1Amount}
+                  disabled={isCalculating}
                 />
                 <InputGroup.Text
                   style={{ width: "100px" }}
                   className="justify-content-center"
                 >
-                  {symbols && symbols[0]}
+                  {symbols && symbols[0]}{" "}
+                  {isCalculating && <Spinner size="sm" />}
                 </InputGroup.Text>
               </InputGroup>
             </Row>
             <Row className="my-3">
-              <Form.Text className="text-end my-2" muted>
-                Balance: {balances[1]}
-              </Form.Text>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <Form.Text muted>Balance: {balances[1]}</Form.Text>
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={setMaxToken2}
+                  disabled={!balances[1] || parseFloat(balances[1]) === 0}
+                >
+                  Max
+                </Button>
+              </div>
               <InputGroup>
                 <Form.Control
                   type="number"
@@ -165,12 +287,14 @@ const Deposit = () => {
                     amountHandler(e)
                   }}
                   value={token2Amount === 0 ? "" : token2Amount}
+                  disabled={isCalculating}
                 />
                 <InputGroup.Text
                   style={{ width: "100px" }}
                   className="justify-content-center"
                 >
-                  {symbols && symbols[1]}
+                  {symbols && symbols[1]}{" "}
+                  {isCalculating && <Spinner size="sm" />}
                 </InputGroup.Text>
               </InputGroup>
             </Row>
