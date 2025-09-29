@@ -2,7 +2,7 @@ import { ethers } from "ethers"
 import Table from "react-bootstrap/Table"
 import Chart from "react-apexcharts"
 import { chartSelector } from "../store/selectors"
-import { options, series } from "./Charts.config"
+import { options } from "./Charts.config"
 import { useSelector, useDispatch } from "react-redux"
 import { useEffect } from "react"
 import Loading from "./Loading"
@@ -13,7 +13,6 @@ const Charts = () => {
   const tokens = useSelector(state => state.tokens.contracts)
   const symbols = useSelector(state => state.tokens.symbols)
   const amm = useSelector(state => state.amm.contract)
-  const swaps = useSelector(state => state.amm.swaps)
   const chart = useSelector(chartSelector)
   const dispatch = useDispatch()
 
@@ -29,7 +28,7 @@ const Charts = () => {
         <div>
           <Chart
             options={options}
-            series={chart ? chart.series : series}
+            series={chart.series}
             type="line"
             width="100%"
             height="100%"
@@ -48,8 +47,8 @@ const Charts = () => {
               </tr>
             </thead>
             <tbody>
-              {swaps &&
-                swaps.map((swap, index) => (
+              {chart && chart.series && chart.series[0] && chart.series[0].swaps &&
+                chart.series[0].swaps.map((swap, index) => (
                   <tr key={index}>
                     <td>
                       {swap.hash.slice(0, 5) + "..." + swap.hash.slice(61, 66)}

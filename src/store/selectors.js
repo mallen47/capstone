@@ -4,8 +4,14 @@ const tokens = state => state.tokens.contracts
 const swaps = state => state.amm.swaps
 
 export const chartSelector = createSelector(swaps, tokens, (swaps, tokens) => {
-  if (!tokens[0] || !tokens[1]) {
-    return
+  if (!tokens[0] || !tokens[1] || !swaps || swaps.length === 0) {
+    return {
+      series: [{
+        name: "Rate",
+        data: [],
+        swaps: []
+      }]
+    }
   }
 
   // Filter by selected tokens
@@ -36,9 +42,9 @@ export const chartSelector = createSelector(swaps, tokens, (swaps, tokens) => {
   return {
     series: [
       {
-        swaps: swaps,
         name: "Rate",
         data: prices,
+        swaps: swaps,
       },
     ],
   }
