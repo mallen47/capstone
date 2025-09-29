@@ -133,7 +133,7 @@ const parseErrorMessage = error => {
 ////////////////////////////////////
 // Swap tokens
 
-export const swap = async (provider, amm, token, symbol, amount, minAmount, dispatch) => {
+export const swap = async (provider, amm, token, symbol, amount, minAmount, deadlineMinutes, dispatch) => {
   try {
     dispatch(swapRequest())
 
@@ -144,8 +144,8 @@ export const swap = async (provider, amm, token, symbol, amount, minAmount, disp
     transaction = await token.connect(signer).approve(amm.address, amount)
     await transaction.wait()
 
-    // Set deadline (1 hour from now)
-    const deadline = Math.floor(Date.now() / 1000) + 3600
+    // Set deadline based on user preference (convert minutes to seconds)
+    const deadline = Math.floor(Date.now() / 1000) + (deadlineMinutes * 60)
 
     if (symbol === "DPC") {
       // For DPC -> USDK swap with slippage protection
