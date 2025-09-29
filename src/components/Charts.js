@@ -26,14 +26,15 @@ const Charts = () => {
     <div>
       {provider && amm ? (
         <div>
-          <Chart
-            options={options}
-            series={chart.series}
-            type="line"
-            width="100%"
-            height="100%"
-          />
-          <hr />
+          <div className="mb-4 p-3 bg-body-secondary rounded border">
+            <Chart
+              options={options}
+              series={chart.series}
+              type="line"
+              width="100%"
+              height="250"
+            />
+          </div>
           <Table striped bordered hover>
             <thead>
               <tr>
@@ -47,7 +48,10 @@ const Charts = () => {
               </tr>
             </thead>
             <tbody>
-              {chart && chart.series && chart.series[0] && chart.series[0].swaps &&
+              {chart &&
+                chart.series &&
+                chart.series[0] &&
+                chart.series[0].swaps &&
                 chart.series[0].swaps.map((swap, index) => (
                   <tr key={index}>
                     <td>
