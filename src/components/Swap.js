@@ -9,6 +9,7 @@ import DropdownButton from "react-bootstrap/DropdownButton"
 import Button from "react-bootstrap/Button"
 import Row from "react-bootstrap/Row"
 import Spinner from "react-bootstrap/Spinner"
+import Badge from "react-bootstrap/Badge"
 import { swap, loadBalances } from "../store/interactions"
 import { swapReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
@@ -19,6 +20,9 @@ const Swap = () => {
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
   const [price, setPrice] = useState(0)
+  const [slippageTolerance, setSlippageTolerance] = useState(0.5)
+  const [priceImpact, setPriceImpact] = useState(0)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
   const account = useSelector(state => state.provider.account)
@@ -34,6 +38,52 @@ const Swap = () => {
   const errorMessage = useSelector(state => state.amm.swapping.errorMessage)
 
   const dispatch = useDispatch()
+
+  // Calculate price impact
+  const calculatePriceImpact = async (
+    inputValue,
+    outputValue,
+    inputTokenSymbol
+  ) => {
+    try {
+      if (!inputValue || !outputValue || !amm) {
+        setPriceImpact(0)
+        return
+      }
+
+      const [token1Bal, token2Bal] = await Promise.all([
+        amm.token1Balance(),
+        amm.token2Balance(),
+      ])
+
+      const dpcBalance = parseFloat(ethers.utils.formatEther(token1Bal))
+      const usdkBalance = parseFloat(ethers.utils.formatEther(token2Bal))
+
+      // Current price before trade
+      const currentPrice =
+        inputTokenSymbol === "DPC"
+          ? usdkBalance / dpcBalance
+          : dpcBalance / usdkBalance
+
+      // Effective price after trade
+      const effectivePrice = parseFloat(outputValue) / parseFloat(inputValue)
+
+      // Price impact = (effective price - current price) / current price * 100
+      const impact =
+        Math.abs((effectivePrice - currentPrice) / currentPrice) * 100
+      setPriceImpact(impact)
+    } catch (error) {
+      console.error("Error calculating price impact:", error)
+      setPriceImpact(0)
+    }
+  }
+
+  // Calculate minimum output amount with slippage tolerance
+  const calculateMinimumOutput = (outputAmount, slippage) => {
+    if (!outputAmount || outputAmount === 0) return "0"
+    const minOutput = parseFloat(outputAmount) * (1 - slippage / 100)
+    return minOutput.toFixed(6)
+  }
 
   const inputHandler = async e => {
     if (!inputToken || !outputToken) {
@@ -70,6 +120,8 @@ const Swap = () => {
           "ether"
         )
         setOutputAmount(_token2Amount.toString())
+        // Calculate price impact
+        calculatePriceImpact(inputValue, _token2Amount, "DPC")
       } else {
         const result = await amm.calculateToken2Swap(
           ethers.utils.parseUnits(inputValue, "ether")
@@ -79,6 +131,8 @@ const Swap = () => {
           "ether"
         )
         setOutputAmount(_token1Amount.toString())
+        // Calculate price impact
+        calculatePriceImpact(inputValue, _token1Amount, "USDK")
       }
     } catch (error) {
       console.error("Error calculating swap amount:", error)
@@ -109,10 +163,33 @@ const Swap = () => {
       "ether"
     )
 
+    // Calculate minimum output with slippage protection
+    const minimumOutput = calculateMinimumOutput(
+      outputAmount,
+      slippageTolerance
+    )
+    const _minimumOutput = ethers.utils.parseUnits(minimumOutput, "ether")
+
     if (inputToken === "DPC") {
-      await swap(provider, amm, tokens[0], inputToken, _inputAmount, dispatch)
+      await swap(
+        provider,
+        amm,
+        tokens[0],
+        inputToken,
+        _inputAmount,
+        _minimumOutput,
+        dispatch
+      )
     } else {
-      await swap(provider, amm, tokens[1], inputToken, _inputAmount, dispatch)
+      await swap(
+        provider,
+        amm,
+        tokens[1],
+        inputToken,
+        _inputAmount,
+        _minimumOutput,
+        dispatch
+      )
     }
   }
 
@@ -198,7 +275,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong className="text-muted">BUY: </strong>
+                  <strong className="text-muted">SWAP: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:{" "}
@@ -238,7 +315,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong className="text-muted">SELL: </strong>
+                  <strong className="text-muted">GET: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:
@@ -273,6 +350,78 @@ const Swap = () => {
                 </DropdownButton>
               </InputGroup>
             </Row>
+
+            {/* Price Impact and Slippage Settings */}
+            <Row className="my-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <small className="text-muted">
+                  Price Impact:
+                  <Badge
+                    bg={
+                      priceImpact > 5
+                        ? "danger"
+                        : priceImpact > 2
+                        ? "warning"
+                        : "success"
+                    }
+                    className="ms-1"
+                  >
+                    {priceImpact.toFixed(2)}%
+                  </Badge>
+                </small>
+                <small
+                  className="text-primary"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                >
+                  ⚙️ {showAdvanced ? "Hide" : "Settings"}
+                </small>
+              </div>
+
+              {showAdvanced && (
+                <div className="border rounded p-3 mb-2 bg-light">
+                  <Form.Label className="small">
+                    <strong>Slippage Tolerance</strong>
+                  </Form.Label>
+                  <div className="d-flex gap-2 mb-2">
+                    {[0.1, 0.3, 0.5, 1.0].map(tolerance => (
+                      <Button
+                        key={tolerance}
+                        size="sm"
+                        variant={
+                          slippageTolerance === tolerance
+                            ? "primary"
+                            : "outline-secondary"
+                        }
+                        onClick={() => setSlippageTolerance(tolerance)}
+                      >
+                        {tolerance}%
+                      </Button>
+                    ))}
+                  </div>
+                  <InputGroup size="sm">
+                    <Form.Control
+                      type="number"
+                      placeholder="Custom %"
+                      min="0.01"
+                      max="5"
+                      step="0.01"
+                      value={slippageTolerance}
+                      onChange={e =>
+                        setSlippageTolerance(parseFloat(e.target.value) || 0.5)
+                      }
+                    />
+                    <InputGroup.Text>%</InputGroup.Text>
+                  </InputGroup>
+                  <Form.Text className="text-muted small">
+                    Minimum received:{" "}
+                    {calculateMinimumOutput(outputAmount, slippageTolerance)}{" "}
+                    {outputToken}
+                  </Form.Text>
+                </div>
+              )}
+            </Row>
+
             <Row className="my-3">
               {isSwapping ? (
                 <Spinner
@@ -280,7 +429,22 @@ const Swap = () => {
                   style={{ display: "block", margin: "0 auto" }}
                 />
               ) : (
-                <Button type="submit">Swap</Button>
+                <Button
+                  type="submit"
+                  variant={
+                    priceImpact > 10
+                      ? "danger"
+                      : priceImpact > 5
+                      ? "warning"
+                      : "primary"
+                  }
+                >
+                  {priceImpact > 10
+                    ? "Swap Anyway"
+                    : priceImpact > 5
+                    ? "Swap (High Impact)"
+                    : "Swap"}
+                </Button>
               )}
               <Form.Text muted>
                 Exchange Rate:{" "}
