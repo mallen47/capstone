@@ -23,6 +23,7 @@ const Swap = () => {
   const [slippageTolerance, setSlippageTolerance] = useState(0.5)
   const [priceImpact, setPriceImpact] = useState(0)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [deadlineMinutes, setDeadlineMinutes] = useState(20)
 
   const provider = useSelector(state => state.provider.connection)
   const account = useSelector(state => state.provider.account)
@@ -178,6 +179,7 @@ const Swap = () => {
         inputToken,
         _inputAmount,
         _minimumOutput,
+        deadlineMinutes,
         dispatch
       )
     } else {
@@ -188,6 +190,7 @@ const Swap = () => {
         inputToken,
         _inputAmount,
         _minimumOutput,
+        deadlineMinutes,
         dispatch
       )
     }
@@ -417,6 +420,43 @@ const Swap = () => {
                     Minimum received:{" "}
                     {calculateMinimumOutput(outputAmount, slippageTolerance)}{" "}
                     {outputToken}
+                  </Form.Text>
+
+                  <hr className="my-3" />
+
+                  <Form.Label className="small">
+                    <strong>Transaction Deadline</strong>
+                  </Form.Label>
+                  <div className="d-flex gap-2 mb-2">
+                    {[10, 20, 30, 60].map((minutes) => (
+                      <Button
+                        key={minutes}
+                        size="sm"
+                        variant={
+                          deadlineMinutes === minutes
+                            ? "primary"
+                            : "outline-secondary"
+                        }
+                        onClick={() => setDeadlineMinutes(minutes)}
+                      >
+                        {minutes}m
+                      </Button>
+                    ))}
+                  </div>
+                  <InputGroup size="sm">
+                    <Form.Control
+                      type="number"
+                      placeholder="Custom minutes"
+                      min="1"
+                      max="120"
+                      step="1"
+                      value={deadlineMinutes}
+                      onChange={(e) => setDeadlineMinutes(parseInt(e.target.value) || 20)}
+                    />
+                    <InputGroup.Text>min</InputGroup.Text>
+                  </InputGroup>
+                  <Form.Text className="text-muted small">
+                    Transaction expires in {deadlineMinutes} minutes if not executed
                   </Form.Text>
                 </div>
               )}
