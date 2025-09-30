@@ -83,11 +83,14 @@ const Withdraw = () => {
       const ownershipPercent =
         totalShares > 0 ? (userShares / totalShares) * 100 : 0
 
+      const reserve1 = parseFloat(ethers.utils.formatEther(poolData.reserve0))
+      const reserve2 = parseFloat(ethers.utils.formatEther(poolData.reserve1))
+
       setPoolInfo({
         totalShares: totalShares,
         ownershipPercent: ownershipPercent,
-        reserve1: parseFloat(ethers.utils.formatEther(poolData.reserve0)),
-        reserve2: parseFloat(ethers.utils.formatEther(poolData.reserve1)),
+        reserve1: reserve1,
+        reserve2: reserve2,
       })
 
       // Calculate estimated USD value (using token2 as base)
@@ -96,7 +99,7 @@ const Withdraw = () => {
 
       // Calculate Impermanent Loss
       // For educational purposes, we'll use a simplified approach:
-      // Compare current LP value vs. if user had just held 50/50 of initial pool ratio
+      // Compare current LP value vs. if user had just held tokens
       // IL occurs when price changes - we'll calculate based on current vs initial price
 
       // Get initial pool ratio (we'll use a 1:1 baseline for educational purposes)
@@ -105,17 +108,24 @@ const Withdraw = () => {
       const currentPrice = priceFormatted
 
       if (currentPrice > 0 && initialPrice > 0) {
-        const priceRatio = currentPrice / initialPrice
-        const sqrtPriceRatio = Math.sqrt(priceRatio)
+        // Calculate what tokens user would have if they deposited at 1:1 ratio
+        // At deposit: user provided equal USD value of both tokens
+        // Current LP position: token1Amount of token1 + token2Amount of token2
 
-        // IL formula: 2 * sqrt(priceRatio) / (1 + priceRatio) - 1
-        const ilMultiplier = (2 * sqrtPriceRatio) / (1 + priceRatio) - 1
-        const ilPercentage = ilMultiplier * 100
+        // Working backwards: if current LP has token1Amount and token2Amount,
+        // and constant product k = token1 * token2 is maintained,
+        // at initial 1:1 price, user would have deposited:
+        // initialToken1 = sqrt(k / initialPrice) and initialToken2 = sqrt(k * initialPrice)
 
-        // Calculate value if just held tokens (HODL value)
-        // Assume initial 50/50 split in USD terms
-        const hodlValue =
-          estimatedUSD / ((2 * sqrtPriceRatio) / (1 + priceRatio))
+        const k = token1Amount * token2Amount
+        const initialToken1 = Math.sqrt(k / initialPrice)
+        const initialToken2 = Math.sqrt(k * initialPrice)
+
+        // HODL value: what those initial tokens are worth now at current price
+        const hodlValue = initialToken1 * currentPrice + initialToken2
+
+        // IL percentage: (LP Value - HODL Value) / HODL Value * 100
+        const ilPercentage = hodlValue > 0 ? ((estimatedUSD - hodlValue) / hodlValue) * 100 : 0
 
         setImpermanentLoss({
           percentage: ilPercentage,
@@ -132,8 +142,8 @@ const Withdraw = () => {
       // In production, you'd track actual fee earnings via events
 
       // Get pool reserves in USD terms
-      const reserve1USD = poolInfo.reserve1 * priceFormatted
-      const reserve2USD = poolInfo.reserve2
+      const reserve1USD = reserve1 * priceFormatted
+      const reserve2USD = reserve2
       const totalPoolUSD = reserve1USD + reserve2USD
 
       // Simulate daily volume as 10% of total pool USD value (educational estimate)
