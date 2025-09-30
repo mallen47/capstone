@@ -20,6 +20,7 @@ const Withdraw = () => {
   const [poolInfo, setPoolInfo] = useState(null)
   const [estimatedValue, setEstimatedValue] = useState(null)
   const [impermanentLoss, setImpermanentLoss] = useState(null)
+  const [yieldMetrics, setYieldMetrics] = useState(null)
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
@@ -125,12 +126,47 @@ const Withdraw = () => {
       } else {
         setImpermanentLoss(null)
       }
+
+      // Calculate Yield Farming Metrics
+      // For educational purposes: estimate trading fee earnings based on pool activity
+      // In production, you'd track actual fee earnings via events
+
+      // Get pool reserves in USD terms
+      const reserve1USD = poolInfo.reserve1 * priceFormatted
+      const reserve2USD = poolInfo.reserve2
+      const totalPoolUSD = reserve1USD + reserve2USD
+
+      // Simulate daily volume as 10% of total pool USD value (educational estimate)
+      const dailyVolume = totalPoolUSD * 0.1
+
+      // 0.3% trading fee on volume
+      const dailyFees = dailyVolume * 0.003
+
+      // User's share of fees based on pool ownership
+      const dailyUserFees = dailyFees * (ownershipPercent / 100)
+
+      // Annualized metrics
+      const yearlyUserFees = dailyUserFees * 365
+      const apr = estimatedUSD > 0 ? (yearlyUserFees / estimatedUSD) * 100 : 0
+
+      // APY with daily compounding: (1 + daily_rate)^365 - 1
+      const dailyRate = estimatedUSD > 0 ? dailyUserFees / estimatedUSD : 0
+      const apy = dailyRate > 0 ? ((Math.pow(1 + dailyRate, 365) - 1) * 100) : 0
+
+      setYieldMetrics({
+        estimatedDailyFees: dailyUserFees,
+        estimatedYearlyFees: yearlyUserFees,
+        apr: apr,
+        apy: apy,
+      })
+
     } catch (error) {
       console.error("Error loading LP analytics:", error)
       setLpTokenValue(null)
       setPoolInfo(null)
       setEstimatedValue(null)
       setImpermanentLoss(null)
+      setYieldMetrics(null)
     } finally {
       setIsLoadingAnalytics(false)
     }
@@ -152,8 +188,6 @@ const Withdraw = () => {
       showToast("success", "Withdraw Successful!", transactionHash)
       // Reload balances after successful withdraw
       loadBalances(amm, tokens, account, dispatch)
-      // Reload analytics after successful withdraw
-      loadLPAnalytics()
       // Reload analytics after successful withdraw
       loadLPAnalytics()
       // Clear input field after successful transaction
@@ -331,6 +365,53 @@ const Withdraw = () => {
                         <div className="small text-muted mt-2">
                           💡 IL shows the difference between providing liquidity
                           vs. holding tokens
+                        </div>
+                      </>
+                    )}
+                    {yieldMetrics && (
+                      <>
+                        <hr />
+                        <div className="mb-2 text-center">
+                          <Badge bg="success">Yield Farming Metrics</Badge>
+                        </div>
+                        <Row className="mb-1">
+                          <Col xs={7}>
+                            <strong>APR:</strong>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <strong style={{ color: "#28a745" }}>
+                              {yieldMetrics.apr.toFixed(2)}%
+                            </strong>
+                          </Col>
+                        </Row>
+                        <Row className="mb-2">
+                          <Col xs={7}>
+                            <strong>APY:</strong>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <strong style={{ color: "#28a745" }}>
+                              {yieldMetrics.apy.toFixed(2)}%
+                            </strong>
+                          </Col>
+                        </Row>
+                        <Row className="mb-1">
+                          <Col xs={7}>
+                            <small>Est. Daily Fees:</small>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <small>${yieldMetrics.estimatedDailyFees.toFixed(4)}</small>
+                          </Col>
+                        </Row>
+                        <Row className="mb-1">
+                          <Col xs={7}>
+                            <small>Est. Yearly Fees:</small>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <small>${yieldMetrics.estimatedYearlyFees.toFixed(2)}</small>
+                          </Col>
+                        </Row>
+                        <div className="small text-muted mt-2">
+                          📊 Estimates based on 0.3% trading fee and simulated volume
                         </div>
                       </>
                     )}
