@@ -19,6 +19,7 @@ const Withdraw = () => {
   const [lpTokenValue, setLpTokenValue] = useState(null)
   const [poolInfo, setPoolInfo] = useState(null)
   const [estimatedValue, setEstimatedValue] = useState(null)
+  const [impermanentLoss, setImpermanentLoss] = useState(null)
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
@@ -91,11 +92,45 @@ const Withdraw = () => {
       // Calculate estimated USD value (using token2 as base)
       const estimatedUSD = token2Amount + token1Amount * priceFormatted
       setEstimatedValue(estimatedUSD)
+
+      // Calculate Impermanent Loss
+      // For educational purposes, we'll use a simplified approach:
+      // Compare current LP value vs. if user had just held 50/50 of initial pool ratio
+      // IL occurs when price changes - we'll calculate based on current vs initial price
+
+      // Get initial pool ratio (we'll use a 1:1 baseline for educational purposes)
+      // In a production app, you'd track actual deposit prices via events
+      const initialPrice = 1 // Baseline: assume 1:1 initial ratio for educational calc
+      const currentPrice = priceFormatted
+
+      if (currentPrice > 0 && initialPrice > 0) {
+        const priceRatio = currentPrice / initialPrice
+        const sqrtPriceRatio = Math.sqrt(priceRatio)
+
+        // IL formula: 2 * sqrt(priceRatio) / (1 + priceRatio) - 1
+        const ilMultiplier = (2 * sqrtPriceRatio) / (1 + priceRatio) - 1
+        const ilPercentage = ilMultiplier * 100
+
+        // Calculate value if just held tokens (HODL value)
+        // Assume initial 50/50 split in USD terms
+        const hodlValue =
+          estimatedUSD / ((2 * sqrtPriceRatio) / (1 + priceRatio))
+
+        setImpermanentLoss({
+          percentage: ilPercentage,
+          hodlValue: hodlValue,
+          lpValue: estimatedUSD,
+          difference: estimatedUSD - hodlValue,
+        })
+      } else {
+        setImpermanentLoss(null)
+      }
     } catch (error) {
       console.error("Error loading LP analytics:", error)
       setLpTokenValue(null)
       setPoolInfo(null)
       setEstimatedValue(null)
+      setImpermanentLoss(null)
     } finally {
       setIsLoadingAnalytics(false)
     }
@@ -117,6 +152,8 @@ const Withdraw = () => {
       showToast("success", "Withdraw Successful!", transactionHash)
       // Reload balances after successful withdraw
       loadBalances(amm, tokens, account, dispatch)
+      // Reload analytics after successful withdraw
+      loadLPAnalytics()
       // Reload analytics after successful withdraw
       loadLPAnalytics()
       // Clear input field after successful transaction
@@ -243,6 +280,59 @@ const Withdraw = () => {
                           <strong>~${estimatedValue.toFixed(2)}</strong>
                         </Col>
                       </Row>
+                    )}
+                    {impermanentLoss && (
+                      <>
+                        <hr />
+                        <div className="mb-2 text-center">
+                          <Badge
+                            bg={
+                              impermanentLoss.percentage < 0
+                                ? "warning"
+                                : "success"
+                            }
+                          >
+                            Impermanent Loss Analysis
+                          </Badge>
+                        </div>
+                        <Row className="mb-1">
+                          <Col xs={6}>IL Impact:</Col>
+                          <Col xs={6} className="text-end">
+                            <span
+                              style={{
+                                color:
+                                  impermanentLoss.percentage < 0
+                                    ? "#dc3545"
+                                    : "#28a745",
+                              }}
+                            >
+                              {impermanentLoss.percentage.toFixed(2)}%
+                            </span>
+                          </Col>
+                        </Row>
+                        <Row className="mb-1">
+                          <Col xs={7}>
+                            <small>LP Value:</small>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <small>${impermanentLoss.lpValue.toFixed(2)}</small>
+                          </Col>
+                        </Row>
+                        <Row className="mb-1">
+                          <Col xs={7}>
+                            <small>HODL Value:</small>
+                          </Col>
+                          <Col xs={5} className="text-end">
+                            <small>
+                              ${impermanentLoss.hodlValue.toFixed(2)}
+                            </small>
+                          </Col>
+                        </Row>
+                        <div className="small text-muted mt-2">
+                          💡 IL shows the difference between providing liquidity
+                          vs. holding tokens
+                        </div>
+                      </>
                     )}
                   </>
                 ) : null}
