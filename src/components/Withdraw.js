@@ -10,6 +10,9 @@ import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
 import Badge from "react-bootstrap/Badge"
 import Alert from "react-bootstrap/Alert"
+import OverlayTrigger from "react-bootstrap/OverlayTrigger"
+import Tooltip from "react-bootstrap/Tooltip"
+import Collapse from "react-bootstrap/Collapse"
 import { removeLiquidity, loadBalances } from "../store/interactions"
 import { withdrawReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
@@ -22,6 +25,9 @@ const Withdraw = () => {
   const [impermanentLoss, setImpermanentLoss] = useState(null)
   const [yieldMetrics, setYieldMetrics] = useState(null)
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
+  const [showLPValue, setShowLPValue] = useState(false)
+  const [showIL, setShowIL] = useState(false)
+  const [showYield, setShowYield] = useState(false)
 
   const provider = useSelector(state => state.provider.connection)
   const account = useSelector(state => state.provider.account)
@@ -125,7 +131,8 @@ const Withdraw = () => {
         const hodlValue = initialToken1 * currentPrice + initialToken2
 
         // IL percentage: (LP Value - HODL Value) / HODL Value * 100
-        const ilPercentage = hodlValue > 0 ? ((estimatedUSD - hodlValue) / hodlValue) * 100 : 0
+        const ilPercentage =
+          hodlValue > 0 ? ((estimatedUSD - hodlValue) / hodlValue) * 100 : 0
 
         setImpermanentLoss({
           percentage: ilPercentage,
@@ -161,7 +168,7 @@ const Withdraw = () => {
 
       // APY with daily compounding: (1 + daily_rate)^365 - 1
       const dailyRate = estimatedUSD > 0 ? dailyUserFees / estimatedUSD : 0
-      const apy = dailyRate > 0 ? ((Math.pow(1 + dailyRate, 365) - 1) * 100) : 0
+      const apy = dailyRate > 0 ? (Math.pow(1 + dailyRate, 365) - 1) * 100 : 0
 
       setYieldMetrics({
         estimatedDailyFees: dailyUserFees,
@@ -169,7 +176,6 @@ const Withdraw = () => {
         apr: apr,
         apy: apy,
       })
-
     } catch (error) {
       console.error("Error loading LP analytics:", error)
       setLpTokenValue(null)
@@ -285,7 +291,20 @@ const Withdraw = () => {
                   <>
                     <Row className="mb-2">
                       <Col xs={6}>
-                        <strong>Your Shares:</strong>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip>
+                              LP tokens representing your liquidity position.
+                              Each share entitles you to a portion of the pool's
+                              assets.
+                            </Tooltip>
+                          }
+                        >
+                          <strong style={{ cursor: "help" }}>
+                            Your Shares:
+                          </strong>
+                        </OverlayTrigger>
                       </Col>
                       <Col xs={6} className="text-end">
                         {parseFloat(shares).toFixed(4)}
@@ -293,136 +312,246 @@ const Withdraw = () => {
                     </Row>
                     <Row className="mb-2">
                       <Col xs={6}>
-                        <strong>Pool Ownership:</strong>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={
+                            <Tooltip>
+                              Your share of the total liquidity pool. This
+                              determines your portion of trading fees.
+                            </Tooltip>
+                          }
+                        >
+                          <strong style={{ cursor: "help" }}>
+                            Pool Ownership:
+                          </strong>
+                        </OverlayTrigger>
                       </Col>
                       <Col xs={6} className="text-end">
                         {poolInfo.ownershipPercent.toFixed(4)}%
                       </Col>
                     </Row>
                     <hr />
-                    <div className="mb-2 text-center">
-                      <Badge bg="secondary">LP Token Value</Badge>
+                    <div
+                      className="mb-2"
+                      style={{
+                        cursor: "pointer",
+                        userSelect: "none",
+                        fontWeight: "600",
+                      }}
+                      onClick={() => setShowLPValue(!showLPValue)}
+                    >
+                      {showLPValue ? "▼" : "▶"} LP Token Value
                     </div>
-                    <Row className="mb-1">
-                      <Col xs={6}>{symbols[0]}:</Col>
-                      <Col xs={6} className="text-end">
-                        {lpTokenValue.token1.toFixed(6)}
-                      </Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col xs={6}>{symbols[1]}:</Col>
-                      <Col xs={6} className="text-end">
-                        {lpTokenValue.token2.toFixed(6)}
-                      </Col>
-                    </Row>
-                    {estimatedValue && (
-                      <Row className="mb-2">
-                        <Col xs={6}>
-                          <strong>Est. Value:</strong>
-                        </Col>
-                        <Col xs={6} className="text-end">
-                          <strong>~${estimatedValue.toFixed(2)}</strong>
-                        </Col>
-                      </Row>
-                    )}
+                    <Collapse in={showLPValue}>
+                      <div>
+                        <Row className="mb-1">
+                          <Col xs={6}>{symbols[0]}:</Col>
+                          <Col xs={6} className="text-end">
+                            {lpTokenValue.token1.toFixed(6)}
+                          </Col>
+                        </Row>
+                        <Row className="mb-2">
+                          <Col xs={6}>{symbols[1]}:</Col>
+                          <Col xs={6} className="text-end">
+                            {lpTokenValue.token2.toFixed(6)}
+                          </Col>
+                        </Row>
+                        {estimatedValue && (
+                          <Row className="mb-2">
+                            <Col xs={6}>
+                              <strong>Est. Value:</strong>
+                            </Col>
+                            <Col xs={6} className="text-end">
+                              <strong>~${estimatedValue.toFixed(2)}</strong>
+                            </Col>
+                          </Row>
+                        )}
+                      </div>
+                    </Collapse>
                     {impermanentLoss && (
                       <>
                         <hr />
-                        <div className="mb-2 text-center">
-                          <Badge
-                            bg={
-                              impermanentLoss.percentage < 0
-                                ? "warning"
-                                : "success"
-                            }
-                          >
-                            Impermanent Loss Analysis
-                          </Badge>
+                        <div
+                          className="mb-2"
+                          style={{
+                            cursor: "pointer",
+                            userSelect: "none",
+                            fontWeight: "600",
+                          }}
+                          onClick={() => setShowIL(!showIL)}
+                        >
+                          {showIL ? "▼" : "▶"} Impermanent Loss Analysis
                         </div>
-                        <Row className="mb-1">
-                          <Col xs={6}>IL Impact:</Col>
-                          <Col xs={6} className="text-end">
-                            <span
-                              style={{
-                                color:
-                                  impermanentLoss.percentage < 0
-                                    ? "#dc3545"
-                                    : "#28a745",
-                              }}
-                            >
-                              {impermanentLoss.percentage.toFixed(2)}%
-                            </span>
-                          </Col>
-                        </Row>
-                        <Row className="mb-1">
-                          <Col xs={7}>
-                            <small>LP Value:</small>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <small>${impermanentLoss.lpValue.toFixed(2)}</small>
-                          </Col>
-                        </Row>
-                        <Row className="mb-1">
-                          <Col xs={7}>
-                            <small>HODL Value:</small>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <small>
-                              ${impermanentLoss.hodlValue.toFixed(2)}
-                            </small>
-                          </Col>
-                        </Row>
-                        <div className="small text-muted mt-2">
-                          💡 IL shows the difference between providing liquidity
-                          vs. holding tokens
-                        </div>
+                        <Collapse in={showIL}>
+                          <div>
+                            <Row className="mb-1">
+                              <Col xs={6}>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      The percentage difference between
+                                      providing liquidity vs. simply holding
+                                      your tokens. Negative = loss from
+                                      providing liquidity.
+                                    </Tooltip>
+                                  }
+                                >
+                                  <span style={{ cursor: "help" }}>
+                                    IL Impact:
+                                  </span>
+                                </OverlayTrigger>
+                              </Col>
+                              <Col xs={6} className="text-end">
+                                <span
+                                  style={{
+                                    color:
+                                      impermanentLoss.percentage < 0
+                                        ? "#dc3545"
+                                        : "#28a745",
+                                  }}
+                                >
+                                  {impermanentLoss.percentage.toFixed(2)}%
+                                </span>
+                              </Col>
+                            </Row>
+                            <Row className="mb-1">
+                              <Col xs={7}>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      Current USD value of your liquidity
+                                      position in the pool.
+                                    </Tooltip>
+                                  }
+                                >
+                                  <small style={{ cursor: "help" }}>
+                                    LP Value:
+                                  </small>
+                                </OverlayTrigger>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <small>
+                                  ${impermanentLoss.lpValue.toFixed(2)}
+                                </small>
+                              </Col>
+                            </Row>
+                            <Row className="mb-1">
+                              <Col xs={7}>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      The value if you had simply held your
+                                      initial tokens instead of providing
+                                      liquidity.
+                                    </Tooltip>
+                                  }
+                                >
+                                  <small style={{ cursor: "help" }}>
+                                    HODL Value:
+                                  </small>
+                                </OverlayTrigger>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <small>
+                                  ${impermanentLoss.hodlValue.toFixed(2)}
+                                </small>
+                              </Col>
+                            </Row>
+                          </div>
+                        </Collapse>
                       </>
                     )}
                     {yieldMetrics && (
                       <>
                         <hr />
-                        <div className="mb-2 text-center">
-                          <Badge bg="success">Yield Farming Metrics</Badge>
+                        <div
+                          className="mb-2"
+                          style={{
+                            cursor: "pointer",
+                            userSelect: "none",
+                            fontWeight: "600",
+                          }}
+                          onClick={() => setShowYield(!showYield)}
+                        >
+                          {showYield ? "▼" : "▶"} Yield Farming Metrics
                         </div>
-                        <Row className="mb-1">
-                          <Col xs={7}>
-                            <strong>APR:</strong>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <strong style={{ color: "#28a745" }}>
-                              {yieldMetrics.apr.toFixed(2)}%
-                            </strong>
-                          </Col>
-                        </Row>
-                        <Row className="mb-2">
-                          <Col xs={7}>
-                            <strong>APY:</strong>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <strong style={{ color: "#28a745" }}>
-                              {yieldMetrics.apy.toFixed(2)}%
-                            </strong>
-                          </Col>
-                        </Row>
-                        <Row className="mb-1">
-                          <Col xs={7}>
-                            <small>Est. Daily Fees:</small>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <small>${yieldMetrics.estimatedDailyFees.toFixed(4)}</small>
-                          </Col>
-                        </Row>
-                        <Row className="mb-1">
-                          <Col xs={7}>
-                            <small>Est. Yearly Fees:</small>
-                          </Col>
-                          <Col xs={5} className="text-end">
-                            <small>${yieldMetrics.estimatedYearlyFees.toFixed(2)}</small>
-                          </Col>
-                        </Row>
-                        <div className="small text-muted mt-2">
-                          📊 Estimates based on 0.3% trading fee and simulated volume
-                        </div>
+                        <Collapse in={showYield}>
+                          <div>
+                            <Row className="mb-1">
+                              <Col xs={7}>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      Annual Percentage Rate: Simple interest
+                                      earned from trading fees over one year
+                                      without compounding.
+                                    </Tooltip>
+                                  }
+                                >
+                                  <strong style={{ cursor: "help" }}>
+                                    APR:
+                                  </strong>
+                                </OverlayTrigger>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <strong style={{ color: "#28a745" }}>
+                                  {yieldMetrics.apr.toFixed(2)}%
+                                </strong>
+                              </Col>
+                            </Row>
+                            <Row className="mb-2">
+                              <Col xs={7}>
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      Annual Percentage Yield: Interest earned
+                                      with daily compounding (reinvesting fees).
+                                      Always higher than APR.
+                                    </Tooltip>
+                                  }
+                                >
+                                  <strong style={{ cursor: "help" }}>
+                                    APY:
+                                  </strong>
+                                </OverlayTrigger>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <strong style={{ color: "#28a745" }}>
+                                  {yieldMetrics.apy.toFixed(2)}%
+                                </strong>
+                              </Col>
+                            </Row>
+                            <Row className="mb-1">
+                              <Col xs={7}>
+                                <small>Est. Daily Fees:</small>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <small>
+                                  ${yieldMetrics.estimatedDailyFees.toFixed(4)}
+                                </small>
+                              </Col>
+                            </Row>
+                            <Row className="mb-1">
+                              <Col xs={7}>
+                                <small>Est. Yearly Fees:</small>
+                              </Col>
+                              <Col xs={5} className="text-end">
+                                <small>
+                                  ${yieldMetrics.estimatedYearlyFees.toFixed(2)}
+                                </small>
+                              </Col>
+                            </Row>
+                            <div className="small text-muted mt-2">
+                              * Estimates based on 0.3% trading fee and
+                              simulated volume
+                            </div>
+                          </div>
+                        </Collapse>
                       </>
                     )}
                   </>
