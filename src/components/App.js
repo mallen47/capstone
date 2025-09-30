@@ -17,6 +17,7 @@ import Swap from "./Swap"
 import Deposit from "./Deposit"
 import Withdraw from "./Withdraw"
 import Charts from "./Charts"
+import PoolStats from "./PoolStats"
 import Tabs from "./Tabs"
 import "react-toastify/dist/ReactToastify.css"
 import "bootstrap-icons/font/bootstrap-icons.css"
@@ -72,6 +73,7 @@ function AppContent() {
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/charts" element={<Charts />} />
+          <Route path="/stats" element={<PoolStats />} />
         </Routes>
       </HashRouter>
       <ToastContainer

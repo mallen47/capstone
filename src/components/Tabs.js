@@ -20,6 +20,9 @@ const Tabs = () => {
       <LinkContainer to="/charts">
         <Nav.Link>Charts</Nav.Link>
       </LinkContainer>
+      <LinkContainer to="/stats">
+        <Nav.Link>Stats</Nav.Link>
+      </LinkContainer>
     </Nav>
   )
 }

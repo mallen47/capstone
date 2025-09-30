@@ -428,7 +428,7 @@ const Swap = () => {
                     <strong>Transaction Deadline</strong>
                   </Form.Label>
                   <div className="d-flex gap-2 mb-2">
-                    {[10, 20, 30, 60].map((minutes) => (
+                    {[10, 20, 30, 60].map(minutes => (
                       <Button
                         key={minutes}
                         size="sm"
@@ -451,12 +451,15 @@ const Swap = () => {
                       max="120"
                       step="1"
                       value={deadlineMinutes}
-                      onChange={(e) => setDeadlineMinutes(parseInt(e.target.value) || 20)}
+                      onChange={e =>
+                        setDeadlineMinutes(parseInt(e.target.value) || 20)
+                      }
                     />
                     <InputGroup.Text>min</InputGroup.Text>
                   </InputGroup>
                   <Form.Text className="text-muted small">
-                    Transaction expires in {deadlineMinutes} minutes if not executed
+                    Transaction expires in {deadlineMinutes} minutes if not
+                    executed
                   </Form.Text>
                 </div>
               )}
@@ -486,12 +489,63 @@ const Swap = () => {
                     : "Swap"}
                 </Button>
               )}
-              <Form.Text muted>
-                Exchange Rate:{" "}
-                {price === 0
-                  ? "Select tokens"
-                  : `1 ${inputToken} = ${price.toFixed(6)} ${outputToken}`}
-              </Form.Text>
+              <div>
+                {/* Pool Base Price */}
+                <Form.Text muted>
+                  Pool Price:{" "}
+                  {price === 0
+                    ? "Select tokens"
+                    : `1 ${inputToken} = ${price.toFixed(6)} ${outputToken}`}
+                </Form.Text>
+
+                {/* Your Effective Trade Price */}
+                {inputAmount > 0 && outputAmount > 0 && (
+                  <div className="mt-1">
+                    <Form.Text className="small">
+                      Your Rate: 1 {inputToken} ={" "}
+                      {(
+                        parseFloat(outputAmount) / parseFloat(inputAmount)
+                      ).toFixed(6)}{" "}
+                      {outputToken}
+                      <Badge
+                        bg={
+                          priceImpact > 5
+                            ? "danger"
+                            : priceImpact > 2
+                            ? "warning"
+                            : "success"
+                        }
+                        className="ms-2"
+                        title={`Price difference from pool rate. Large trades move the price ${
+                          priceImpact > 2 ? "significantly" : "slightly"
+                        }.`}
+                      >
+                        {priceImpact > 0.01
+                          ? `${priceImpact > price ? "+" : "-"}${Math.abs(
+                              ((parseFloat(outputAmount) /
+                                parseFloat(inputAmount) -
+                                price) /
+                                price) *
+                                100
+                            ).toFixed(2)}%`
+                          : "0.00%"}
+                      </Badge>
+                    </Form.Text>
+                  </div>
+                )}
+
+                {/* Educational Price Impact Explanation */}
+                {inputAmount > 0 && outputAmount > 0 && priceImpact > 1 && (
+                  <div className="mt-2">
+                    <div className="small text-muted border-start border-2 border-warning ps-2">
+                      <strong>Price Impact:</strong> Your trade is large enough
+                      to move the pool price.
+                      {priceImpact > 5 &&
+                        " Consider splitting into smaller trades to reduce slippage."}
+                    </div>
+                  </div>
+                )}
+              </div>
             </Row>
           </Form>
         ) : (
