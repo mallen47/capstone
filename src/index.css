@@ -3,6 +3,9 @@
    Modern DeFi Aesthetic with Light/Dark Themes
    ============================================== */
 
+/* Import modern fonts from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
 /* Base theme styling */
 :root {
   color-scheme: light dark;
@@ -78,6 +81,111 @@ body {
   background-attachment: fixed;
   color: var(--color-text-primary);
   transition: background var(--transition-slow), color var(--transition-base);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ===== TYPOGRAPHY SYSTEM ===== */
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h1,
+.h1 {
+  font-size: 2.5rem;
+}
+h2,
+.h2 {
+  font-size: 2rem;
+}
+h3,
+.h3 {
+  font-size: 1.75rem;
+}
+h4,
+.h4 {
+  font-size: 1.5rem;
+}
+h5,
+.h5 {
+  font-size: 1.25rem;
+}
+h6,
+.h6 {
+  font-size: 1rem;
+}
+
+/* Text variants */
+.text-muted {
+  color: var(--color-text-muted) !important;
+}
+
+.text-secondary {
+  color: var(--color-text-secondary) !important;
+}
+
+.text-primary {
+  color: var(--color-accent-primary) !important;
+}
+
+/* Small text */
+small,
+.small {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* Form labels */
+.form-label {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.form-text {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* Navbar brand with futuristic font */
+.navbar-brand {
+  font-family: "Space Grotesk", "Inter", sans-serif !important;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+/* Numeric/data displays - tabular numbers for alignment */
+.form-control[type="number"],
+.badge,
+input[type="number"] {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .swap-container {
@@ -149,21 +257,199 @@ body {
   color: var(--color-text-primary);
 }
 
-[data-bs-theme="dark"] .card {
-  background-color: #343a40;
-  border-color: #495057;
+/* ===== CARD STYLING - GLASSMORPHISM ===== */
+
+/* Light mode cards */
+[data-bs-theme="light"] .card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
 }
 
+[data-bs-theme="light"] .card:hover {
+  background: var(--color-bg-card-hover);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
+[data-bs-theme="light"] .card-header {
+  background: rgba(99, 102, 241, 0.05);
+  border-bottom: 1px solid var(--color-border-medium);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+[data-bs-theme="light"] .card-body {
+  padding: 1.5rem;
+}
+
+/* Dark mode cards */
+[data-bs-theme="dark"] .card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-base);
+}
+
+[data-bs-theme="dark"] .card:hover {
+  background: var(--color-bg-card-hover);
+  box-shadow: var(--shadow-xl), var(--glow-primary);
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
+[data-bs-theme="dark"] .card-header {
+  background: rgba(129, 140, 248, 0.08);
+  border-bottom: 1px solid var(--color-border-medium);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+[data-bs-theme="dark"] .card-body {
+  padding: 1.5rem;
+}
+
+/* ===== FORM CONTROLS ===== */
+
+/* Light mode form controls */
+[data-bs-theme="light"] .form-control {
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all var(--transition-base);
+}
+
+[data-bs-theme="light"] .form-control:focus {
+  background-color: #ffffff;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.15);
+  outline: 0;
+}
+
+[data-bs-theme="light"] .form-control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+[data-bs-theme="light"] .form-control:disabled {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: var(--color-text-muted);
+}
+
+/* Dark mode form controls */
 [data-bs-theme="dark"] .form-control {
-  background-color: #495057;
-  border-color: #6c757d;
-  color: #fff;
+  background-color: var(--color-bg-input);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all var(--transition-base);
 }
 
 [data-bs-theme="dark"] .form-control:focus {
-  background-color: #495057;
-  border-color: #86b7fe;
-  color: #fff;
+  background-color: rgba(30, 41, 59, 1);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25);
+  outline: 0;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+[data-bs-theme="dark"] .form-control:disabled {
+  background-color: rgba(148, 163, 184, 0.1);
+  color: var(--color-text-muted);
+}
+
+/* ===== INPUT GROUPS & DROPDOWNS ===== */
+
+/* Light mode */
+[data-bs-theme="light"] .input-group-text {
+  background-color: rgba(99, 102, 241, 0.05);
+  border: 1px solid var(--color-border-medium);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+[data-bs-theme="light"] .dropdown-menu {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+}
+
+[data-bs-theme="light"] .dropdown-item {
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  padding: 0.5rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+[data-bs-theme="light"] .dropdown-item:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: var(--color-accent-primary);
+}
+
+[data-bs-theme="light"] .btn-outline-secondary {
+  border-color: var(--color-border-medium);
+  color: var(--color-text-secondary);
+  background-color: rgba(255, 255, 255, 0.5);
+  transition: all var(--transition-base);
+}
+
+[data-bs-theme="light"] .btn-outline-secondary:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] .input-group-text {
+  background-color: rgba(129, 140, 248, 0.08);
+  border: 1px solid var(--color-border-medium);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  background-color: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-xl);
+  padding: 0.5rem;
+}
+
+[data-bs-theme="dark"] .dropdown-item {
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  padding: 0.5rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover {
+  background-color: rgba(129, 140, 248, 0.15);
+  color: var(--color-accent-primary);
 }
 
 [data-bs-theme="dark"] .btn-outline-secondary {
