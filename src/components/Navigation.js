@@ -1,12 +1,11 @@
 import Navbar from "react-bootstrap/Navbar"
 import Button from "react-bootstrap/Button"
-import Form from "react-bootstrap/Form"
 import logo from "../logo.png"
 import { useSelector, useDispatch } from "react-redux"
 import Blockies from "react-blockies"
 import { loadAccount, loadBalances } from "../store/interactions"
 import { useTheme } from "../contexts/ThemeContext"
-import config from "../config.json"
+import NetworkDropdown from "./NetworkDropdown"
 
 const Navigation = () => {
   const account = useSelector(state => state.provider.account)
@@ -19,13 +18,6 @@ const Navigation = () => {
   const connectHandler = async () => {
     const account = await loadAccount(dispatch)
     await loadBalances(amm, tokens, account, dispatch)
-  }
-
-  const networkHandler = async e => {
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: e.target.value }],
-    })
   }
 
   return (
@@ -56,18 +48,7 @@ const Navigation = () => {
             ></i>
           </Button>
 
-          <Form.Select
-            aria-label="Network Selector"
-            value={config[chainId] ? `0x${chainId.toString(16)}` : `0`}
-            onChange={networkHandler}
-            style={{ maxWidth: "200px", marginRight: "20px" }}
-          >
-            <option value="0" disabled>
-              Select Network
-            </option>
-            <option value="0x7A69">Localhost</option>
-            <option value="0xAA36A7">Sepolia</option>
-          </Form.Select>
+          <NetworkDropdown chainId={chainId} />
 
           {account ? (
             <Navbar.Text className="d-flex align-items-center">
