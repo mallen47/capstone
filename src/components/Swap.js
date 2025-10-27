@@ -278,7 +278,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong className="text-muted">SWAP: </strong>
+                  <strong className="text-muted">SELL: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:{" "}
@@ -318,7 +318,7 @@ const Swap = () => {
             <Row className="my-3">
               <div className="d-flex justify-content-between">
                 <Form.Label>
-                  <strong className="text-muted">GET: </strong>
+                  <strong className="text-muted">BUY: </strong>
                 </Form.Label>
                 <Form.Text muted>
                   Balance:
