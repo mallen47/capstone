@@ -2,9 +2,11 @@ import { ethers } from "ethers"
 import { useState, useEffect, useCallback } from "react"
 import { useSelector } from "react-redux"
 import Card from "react-bootstrap/Card"
+import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import Badge from "react-bootstrap/Badge"
+import Button from "react-bootstrap/Button"
 import Spinner from "react-bootstrap/Spinner"
 
 const PoolStats = () => {
@@ -13,8 +15,8 @@ const PoolStats = () => {
   const [totalLiquidity, setTotalLiquidity] = useState(null)
   const [userLPValue, setUserLPValue] = useState(null)
   const [loading, setLoading] = useState(true)
-
-  const provider = useSelector(state => state.provider.connection)
+  const [showPoolDetails, setShowPoolDetails] = useState(false)
+  const [showUserPosition, setShowUserPosition] = useState(false)
   const account = useSelector(state => state.provider.account)
   const tokens = useSelector(state => state.tokens.contracts)
   const symbols = useSelector(state => state.tokens.symbols)
@@ -50,12 +52,17 @@ const PoolStats = () => {
         reserve0: parseFloat(ethers.utils.formatEther(reserve0)),
         reserve1: parseFloat(ethers.utils.formatEther(reserve1)),
         totalShares: parseFloat(ethers.utils.formatEther(totalShares_)),
-        kValue: parseFloat(ethers.utils.formatEther(kValue)),
+        // K value is reserve0 * reserve1 in wei, so it's in wei² units
+        // Need to divide by 1e36 to get token² units (divide by 1e18 twice)
+        kValue: parseFloat(ethers.utils.formatEther(kValue)) / 1e18,
       }
 
       setPoolData(formattedPoolData)
       setCurrentPrice(price)
-      setTotalLiquidity(parseFloat(ethers.utils.formatEther(liquidityResult)))
+      // Total liquidity is also K value in wei² units, needs same conversion
+      setTotalLiquidity(
+        parseFloat(ethers.utils.formatEther(liquidityResult)) / 1e18
+      )
 
       // Get user LP token value if user has shares
       if (account && shares && parseFloat(shares) > 0) {
@@ -110,106 +117,189 @@ const PoolStats = () => {
   }
 
   return (
-    <Card className="mx-auto mb-4" style={{ maxWidth: "600px" }}>
-      <Card.Header>
-        <div className="d-flex justify-content-between align-items-center">
+    <Card
+      className="mx-auto px-4"
+      style={{ maxWidth: "600px", margin: "50px auto" }}
+    >
+      <div style={{ paddingTop: "50px", paddingBottom: "50px" }}>
+        {/* Header with Live Badge */}
+        <div className="d-flex justify-content-between align-items-center mb-3">
           <h5 className="mb-0">Pool Analytics</h5>
-          <Badge bg="success">Live Data</Badge>
+          <Badge bg="success" className="d-flex align-items-center gap-1">
+            <i className="bi bi-circle-fill" style={{ fontSize: "0.5em" }}></i>
+            Live
+          </Badge>
         </div>
-      </Card.Header>
-      <Card.Body>
-        {/* Current Price Display */}
+
+        {/* Key Metrics Summary */}
         {currentPrice && (
-          <Row className="mb-3">
-            <Col className="text-center">
-              <div className="border rounded p-3 bg-light">
-                <h6 className="text-muted mb-1">Current Exchange Rate</h6>
-                <div className="h4 mb-1">
-                  1 {symbols[0]} = {currentPrice.toFixed(6)} {symbols[1]}
-                </div>
-                <div className="text-muted small">
-                  1 {symbols[1]} = {(1 / currentPrice).toFixed(6)} {symbols[0]}
-                </div>
-              </div>
-            </Col>
-          </Row>
+          <div className="border rounded p-3 mb-3 bg-light text-center">
+            <Form.Label className="small text-muted mb-2">
+              <strong>Current Exchange Rate</strong>
+            </Form.Label>
+            <div className="h4 mb-1 text-primary">
+              1 {symbols[0]} = {currentPrice.toFixed(6)} {symbols[1]}
+            </div>
+            <div className="text-muted small">
+              1 {symbols[1]} = {(1 / currentPrice).toFixed(6)} {symbols[0]}
+            </div>
+          </div>
         )}
 
-        {/* Pool Reserves */}
-        <Row className="mb-3">
-          <Col md={6}>
-            <div className="text-center p-2">
-              <div className="h5 text-primary">
-                {poolData.reserve0.toLocaleString()}
-              </div>
-              <div className="text-muted">{symbols[0]} Reserve</div>
+        {/* Pool Details Section */}
+        <Row className="mt-3 mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <small className="text-muted">
+              <strong>Total Liquidity:</strong>{" "}
+              {totalLiquidity.toLocaleString()} (K Value)
+            </small>
+            <Button
+              size="sm"
+              variant="outline-secondary"
+              onClick={() => setShowPoolDetails(!showPoolDetails)}
+              className="d-flex align-items-center gap-1 py-1 px-2"
+              style={{ fontSize: "0.813rem" }}
+            >
+              <i className="bi bi-bar-chart-line"></i>
+              <span>{showPoolDetails ? "Hide" : "Details"}</span>
+            </Button>
+          </div>
+
+          {showPoolDetails && (
+            <div className="border rounded my-2 p-3 mb-2 bg-light">
+              <Form.Label className="small">
+                <strong>Pool Reserves</strong>
+              </Form.Label>
+              <Row className="mb-2">
+                <Col xs={6}>
+                  <small className="text-muted">{symbols[0]} Reserve:</small>
+                </Col>
+                <Col xs={6} className="text-end">
+                  <strong>{poolData.reserve0.toLocaleString()}</strong>
+                </Col>
+              </Row>
+              <Row className="mb-3">
+                <Col xs={6}>
+                  <small className="text-muted">{symbols[1]} Reserve:</small>
+                </Col>
+                <Col xs={6} className="text-end">
+                  <strong>{poolData.reserve1.toLocaleString()}</strong>
+                </Col>
+              </Row>
+
+              <hr className="my-3" />
+
+              <Form.Label className="small">
+                <strong>Pool Metrics</strong>
+              </Form.Label>
+              <Row className="mb-2">
+                <Col xs={7}>
+                  <small className="text-muted">Total LP Shares:</small>
+                </Col>
+                <Col xs={5} className="text-end">
+                  <small>{poolData.totalShares.toLocaleString()}</small>
+                </Col>
+              </Row>
+              <Row className="mb-2">
+                <Col xs={7}>
+                  <small className="text-muted">K Value (x*y):</small>
+                </Col>
+                <Col xs={5} className="text-end">
+                  <small>{poolData.kValue.toLocaleString()}</small>
+                </Col>
+              </Row>
+              <Row className="mb-2">
+                <Col xs={7}>
+                  <small className="text-muted">Est. Pool Value:</small>
+                </Col>
+                <Col xs={5} className="text-end">
+                  <small>
+                    ~
+                    {(
+                      (poolData.reserve0 +
+                        poolData.reserve1 * (currentPrice || 1)) /
+                      1000
+                    ).toFixed(1)}
+                    K {symbols[1]}
+                  </small>
+                </Col>
+              </Row>
             </div>
-          </Col>
-          <Col md={6}>
-            <div className="text-center p-2">
-              <div className="h5 text-primary">
-                {poolData.reserve1.toLocaleString()}
-              </div>
-              <div className="text-muted">{symbols[1]} Reserve</div>
-            </div>
-          </Col>
+          )}
         </Row>
 
-        {/* Pool Metrics */}
-        <Row className="mb-3">
-          <Col md={4}>
-            <div className="text-center p-2">
-              <div className="h6">{poolData.totalShares.toLocaleString()}</div>
-              <div className="text-muted small">Total LP Shares</div>
-            </div>
-          </Col>
-          <Col md={4}>
-            <div className="text-center p-2">
-              <div className="h6">{totalLiquidity.toLocaleString()}</div>
-              <div className="text-muted small">Pool Liquidity (K)</div>
-            </div>
-          </Col>
-          <Col md={4}>
-            <div className="text-center p-2">
-              <div className="h6">
-                {(
-                  (poolData.reserve0 +
-                    poolData.reserve1 * (currentPrice || 1)) /
-                  1000
-                ).toFixed(1)}
-                K
-              </div>
-              <div className="text-muted small">Est. Pool Value</div>
-            </div>
-          </Col>
-        </Row>
-
-        {/* User LP Position */}
+        {/* User Position Section */}
         {userLPValue && (
-          <Row>
-            <Col>
-              <div className="border rounded p-3 bg-success bg-opacity-10">
-                <h6 className="mb-2">Your LP Position</h6>
-                <div className="d-flex justify-content-between">
-                  <span>
-                    {userLPValue.token1.toFixed(4)} {symbols[0]}
-                  </span>
-                  <span>
-                    {userLPValue.token2.toFixed(4)} {symbols[1]}
-                  </span>
-                </div>
-                <div className="text-muted small mt-1">
-                  LP Shares: {shares} (
-                  {((parseFloat(shares) / poolData.totalShares) * 100).toFixed(
-                    2
-                  )}
-                  % of pool)
-                </div>
+          <Row className="mt-3 mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <small className="text-muted">
+                <strong>Your Position:</strong>{" "}
+                {((parseFloat(shares) / poolData.totalShares) * 100).toFixed(2)}
+                % of pool
+              </small>
+              <Button
+                size="sm"
+                variant="outline-secondary"
+                onClick={() => setShowUserPosition(!showUserPosition)}
+                className="d-flex align-items-center gap-1 py-1 px-2"
+                style={{ fontSize: "0.813rem" }}
+              >
+                <i className="bi bi-wallet2"></i>
+                <span>{showUserPosition ? "Hide" : "Details"}</span>
+              </Button>
+            </div>
+
+            {showUserPosition && (
+              <div className="border rounded my-2 p-3 mb-2 bg-light">
+                <Form.Label className="small">
+                  <strong>Your LP Token Value</strong>
+                </Form.Label>
+                <Row className="mb-2">
+                  <Col xs={6}>
+                    <small className="text-muted">{symbols[0]}:</small>
+                  </Col>
+                  <Col xs={6} className="text-end">
+                    <strong>{userLPValue.token1.toFixed(6)}</strong>
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col xs={6}>
+                    <small className="text-muted">{symbols[1]}:</small>
+                  </Col>
+                  <Col xs={6} className="text-end">
+                    <strong>{userLPValue.token2.toFixed(6)}</strong>
+                  </Col>
+                </Row>
+
+                <hr className="my-3" />
+
+                <Row className="mb-2">
+                  <Col xs={6}>
+                    <small className="text-muted">Your LP Shares:</small>
+                  </Col>
+                  <Col xs={6} className="text-end">
+                    <small>{parseFloat(shares).toFixed(4)}</small>
+                  </Col>
+                </Row>
+                <Row className="mb-2">
+                  <Col xs={6}>
+                    <small className="text-muted">Pool Ownership:</small>
+                  </Col>
+                  <Col xs={6} className="text-end">
+                    <small>
+                      {(
+                        (parseFloat(shares) / poolData.totalShares) *
+                        100
+                      ).toFixed(4)}
+                      %
+                    </small>
+                  </Col>
+                </Row>
               </div>
-            </Col>
+            )}
           </Row>
         )}
-      </Card.Body>
+      </div>
     </Card>
   )
 }
