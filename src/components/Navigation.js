@@ -32,14 +32,23 @@ const Navigation = () => {
       <Navbar.Brand href="#">AMM</Navbar.Brand>
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
-        <div className="d-flex justify-content-end mt-3">
+        <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          {/* Theme Toggle */}
           <Button
             variant="outline-secondary"
             onClick={toggleTheme}
-            className="me-3 theme-toggle-btn"
+            className="theme-toggle-btn"
             aria-label={`Switch to ${
               theme === "light" ? "dark" : "light"
             } mode`}
+            style={{
+              width: "40px",
+              height: "40px",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <i
               className={
@@ -48,24 +57,42 @@ const Navigation = () => {
             ></i>
           </Button>
 
-          <NetworkDropdown chainId={chainId} />
+          {/* Settings Group: Network Selection */}
+          <div className="nav-settings-group">
+            <NetworkDropdown chainId={chainId} />
+          </div>
 
-          {account ? (
-            <Navbar.Text className="d-flex align-items-center">
-              {account.slice(0, 5) + "..." + account.slice(38, 42)}
-              <Blockies
-                seed={account}
-                size={10}
-                scale={3}
-                color="#2187D0"
-                bgColor="#F1F2F9"
-                spotcolor="#767F92"
-                className="identicon mx-2"
-              ></Blockies>
-            </Navbar.Text>
-          ) : (
-            <Button onClick={connectHandler}>Connect</Button>
-          )}
+          {/* Wallet Connection Group */}
+          <div className="nav-wallet-group">
+            {account ? (
+              <Button
+                variant="outline-primary"
+                className="d-flex align-items-center gap-2 nav-account-btn"
+                style={{
+                  height: "40px",
+                  paddingLeft: "12px",
+                  paddingRight: "8px",
+                }}
+              >
+                <span className="account-address">
+                  {account.slice(0, 5) + "..." + account.slice(38, 42)}
+                </span>
+                <Blockies
+                  seed={account}
+                  size={10}
+                  scale={3}
+                  color="#2187D0"
+                  bgColor="#F1F2F9"
+                  spotcolor="#767F92"
+                  className="identicon"
+                ></Blockies>
+              </Button>
+            ) : (
+              <Button onClick={connectHandler} style={{ height: "40px" }}>
+                Connect Wallet
+              </Button>
+            )}
+          </div>
         </div>
       </Navbar.Collapse>
     </Navbar>

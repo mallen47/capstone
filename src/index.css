@@ -545,12 +545,12 @@ input[type="number"] {
 
 /* Dropdown toggle buttons */
 [data-bs-theme="light"] .dropdown-toggle {
-  border-color: var(--color-border-medium) !important;
+  border: 1px solid var(--color-border-medium) !important;
   background-color: rgba(255, 255, 255, 0.7);
 }
 
 [data-bs-theme="light"] .dropdown-toggle:hover {
-  border-color: var(--color-accent-primary) !important;
+  border: 1px solid var(--color-accent-primary) !important;
   background-color: rgba(255, 255, 255, 0.9);
 }
 
@@ -609,7 +609,7 @@ input[type="number"] {
 /* Dropdown toggle buttons - Dark mode */
 [data-bs-theme="dark"] .dropdown-toggle,
 [data-bs-theme="dark"] .btn-outline-secondary.dropdown-toggle {
-  border: 2px solid var(--color-border-strong) !important;
+  border: 1px solid var(--color-border-strong) !important;
   background-color: rgba(30, 41, 59, 0.8) !important;
   color: var(--color-text-primary) !important;
   box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.1);
@@ -617,7 +617,7 @@ input[type="number"] {
 
 [data-bs-theme="dark"] .dropdown-toggle:hover,
 [data-bs-theme="dark"] .btn-outline-secondary.dropdown-toggle:hover {
-  border-color: var(--color-accent-primary) !important;
+  border: 1px solid var(--color-accent-primary) !important;
   background-color: rgba(30, 41, 59, 0.95) !important;
   color: var(--color-accent-primary) !important;
   box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
@@ -625,7 +625,7 @@ input[type="number"] {
 
 [data-bs-theme="dark"] .dropdown-toggle:focus,
 [data-bs-theme="dark"] .btn-outline-secondary.dropdown-toggle:focus {
-  border-color: var(--color-accent-primary) !important;
+  border: 1px solid var(--color-accent-primary) !important;
   box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25) !important;
 }
 
@@ -848,14 +848,14 @@ input[type="number"] {
 /* Light mode: Theme toggle button */
 [data-bs-theme="light"] .theme-toggle-btn {
   color: #1e293b !important;
-  border-color: rgba(30, 41, 59, 0.3) !important;
+  border: 1px solid rgba(30, 41, 59, 0.3) !important;
   background-color: rgba(255, 255, 255, 0.8) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 [data-bs-theme="light"] .theme-toggle-btn:hover {
   color: #0f172a !important;
-  border-color: rgba(30, 41, 59, 0.4) !important;
+  border: 1px solid rgba(30, 41, 59, 0.4) !important;
   background-color: rgba(255, 255, 255, 0.95) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
@@ -863,20 +863,20 @@ input[type="number"] {
 [data-bs-theme="light"] .theme-toggle-btn:focus {
   color: #1e293b !important;
   background-color: rgba(255, 255, 255, 0.8) !important;
-  border-color: var(--color-accent-primary) !important;
+  border: 1px solid var(--color-accent-primary) !important;
 }
 
 /* Dark mode: Theme toggle button */
 [data-bs-theme="dark"] .theme-toggle-btn {
   color: #cbd5e1 !important;
-  border-color: rgba(129, 140, 248, 0.3) !important;
+  border: 1px solid rgba(129, 140, 248, 0.3) !important;
   background-color: rgba(30, 41, 59, 0.5) !important;
   box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.1);
 }
 
 [data-bs-theme="dark"] .theme-toggle-btn:hover {
   color: var(--color-accent-primary) !important;
-  border-color: rgba(129, 140, 248, 0.5) !important;
+  border: 1px solid rgba(129, 140, 248, 0.5) !important;
   background-color: rgba(129, 140, 248, 0.15) !important;
   box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
 }
@@ -884,7 +884,7 @@ input[type="number"] {
 [data-bs-theme="dark"] .theme-toggle-btn:focus {
   color: var(--color-accent-primary) !important;
   background-color: rgba(129, 140, 248, 0.15) !important;
-  border-color: var(--color-accent-primary) !important;
+  border: 1px solid var(--color-accent-primary) !important;
   box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25) !important;
 }
 
@@ -1065,8 +1065,93 @@ button:focus {
   font-size: 1em;
 }
 
+/* ===== NAVIGATION GROUPS ===== */
+
+/* Settings group (Network dropdown) */
+.nav-settings-group {
+  display: flex;
+  align-items: center;
+}
+
+/* Wallet group */
+.nav-wallet-group {
+  display: flex;
+  align-items: center;
+}
+
+/* Account button styling */
+.nav-account-btn {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  cursor: default !important;
+}
+
+.nav-account-btn:hover {
+  transform: none !important;
+  cursor: default !important;
+}
+
+.nav-account-btn .account-address {
+  line-height: 1;
+}
+
+.nav-account-btn .identicon {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* Light mode navigation groups */
+[data-bs-theme="light"] .nav-account-btn {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: var(--color-accent-primary) !important;
+}
+
+[data-bs-theme="light"] .nav-account-btn:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Dark mode navigation groups */
+[data-bs-theme="dark"] .nav-account-btn {
+  background-color: rgba(129, 140, 248, 0.15) !important;
+  border-color: rgba(129, 140, 248, 0.4) !important;
+  color: var(--color-accent-primary) !important;
+}
+
+[data-bs-theme="dark"] .nav-account-btn:hover {
+  background-color: rgba(129, 140, 248, 0.15) !important;
+  border-color: rgba(129, 140, 248, 0.4) !important;
+}
+
+/* Ensure consistent height for all nav elements */
+.network-dropdown .btn,
+.theme-toggle-btn {
+  height: 40px;
+  box-sizing: border-box;
+  border-width: 1px;
+}
+
+.network-dropdown .btn {
+  min-width: 140px;
+}
+
+/* Override any conflicting dropdown button borders */
+.network-dropdown .dropdown-toggle {
+  border-width: 1px !important;
+}
+
 /* Settings icon spacing and sizing */
 .bi-sliders2-vertical {
+  margin-right: 0.25rem;
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+/* Info icon spacing and sizing */
+.bi-info-circle {
   margin-right: 0.25rem;
   font-size: 1.1em;
   vertical-align: middle;
