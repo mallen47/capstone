@@ -485,8 +485,23 @@ const Swap = () => {
                       ? "warning"
                       : "primary"
                   }
+                  disabled={
+                    !inputToken ||
+                    !outputToken ||
+                    inputToken === outputToken ||
+                    !inputAmount ||
+                    parseFloat(inputAmount) <= 0 ||
+                    !outputAmount ||
+                    parseFloat(outputAmount) <= 0
+                  }
                 >
-                  {priceImpact > 10
+                  {!inputToken || !outputToken
+                    ? "Select Tokens"
+                    : inputToken === outputToken
+                    ? "Invalid Token Pair"
+                    : !inputAmount || parseFloat(inputAmount) <= 0
+                    ? "Enter Amount"
+                    : priceImpact > 10
                     ? "Swap Anyway"
                     : priceImpact > 5
                     ? "Swap (High Impact)"
@@ -539,9 +554,8 @@ const Swap = () => {
                 </div>
               )}
 
-              {/* Educational Price Impact Explanation */}
               {inputAmount > 0 && outputAmount > 0 && priceImpact > 1 && (
-                <div className="mt-2">
+                <div className="mt-4">
                   <div className="small text-muted border-start border-2 border-warning ps-2">
                     <strong>Price Impact:</strong> Your trade is large enough to
                     move the pool price.
