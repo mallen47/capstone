@@ -294,16 +294,18 @@ const Deposit = () => {
                 </InputGroup.Text>
               </InputGroup>
             </Row>
-            <Row className="my-4">
+            <div className="my-4">
               {isDepositing ? (
                 <Spinner
                   animation="border"
                   style={{ display: "block", margin: "0 auto" }}
                 />
               ) : (
-                <Button type="submit">Deposit</Button>
+                <Button type="submit" className="w-100">
+                  Deposit
+                </Button>
               )}
-            </Row>
+            </div>
           </Form>
         ) : (
           <p

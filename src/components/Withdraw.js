@@ -589,16 +589,18 @@ const Withdraw = () => {
               </InputGroup>
             </Row>
 
-            <Row className="my-4">
+            <div className="my-4">
               {isWithdrawing ? (
                 <Spinner
                   animation="border"
                   style={{ display: "block", margin: "0 auto" }}
                 />
               ) : (
-                <Button type="submit">Withdraw</Button>
+                <Button type="submit" className="w-100">
+                  Withdraw
+                </Button>
               )}
-            </Row>
+            </div>
             <hr />
             <Row>
               <p>
