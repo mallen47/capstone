@@ -219,14 +219,13 @@ const Deposit = () => {
           >
             {/* Pool Ratio Information */}
             {poolRatio && (
-              <Row className="mb-3">
-                <div className="text-center">
-                  <Badge bg="info" className="p-2">
-                    Pool Ratio: {poolRatio.token1.toFixed(2)} {symbols[0]} :{" "}
-                    {poolRatio.token2.toFixed(2)} {symbols[1]}
-                  </Badge>
-                </div>
-              </Row>
+              <div className="border rounded p-2 mb-3 bg-light text-center">
+                <small className="text-muted">
+                  <strong>Current Pool Ratio:</strong>{" "}
+                  {poolRatio.token1.toFixed(2)} {symbols[0]} :{" "}
+                  {poolRatio.token2.toFixed(2)} {symbols[1]}
+                </small>
+              </div>
             )}
 
             <Row>
