@@ -225,10 +225,6 @@ const Deposit = () => {
                     Pool Ratio: {poolRatio.token1.toFixed(2)} {symbols[0]} :{" "}
                     {poolRatio.token2.toFixed(2)} {symbols[1]}
                   </Badge>
-                  <div className="small text-muted mt-1">
-                    ✨ Amounts are automatically calculated to maintain pool
-                    ratio
-                  </div>
                 </div>
               </Row>
             )}

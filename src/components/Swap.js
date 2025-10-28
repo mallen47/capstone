@@ -355,7 +355,7 @@ const Swap = () => {
             </Row>
 
             {/* Price Impact and Slippage Settings */}
-            <Row className="my-3">
+            <Row className="mt-4 mb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <small className="text-muted">
                   Price Impact:
@@ -372,17 +372,20 @@ const Swap = () => {
                     {priceImpact.toFixed(2)}%
                   </Badge>
                 </small>
-                <small
-                  className="text-primary"
-                  style={{ cursor: "pointer" }}
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
                   onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="d-flex align-items-center gap-1 py-1 px-2"
+                  style={{ fontSize: "0.813rem" }}
                 >
-                  ⚙️ {showAdvanced ? "Hide" : "Settings"}
-                </small>
+                  <i className="bi bi-sliders2-vertical"></i>
+                  <span>{showAdvanced ? "Hide" : "Settings"}</span>
+                </Button>
               </div>
 
               {showAdvanced && (
-                <div className="border rounded p-3 mb-2 bg-light">
+                <div className="border rounded my-2 p-3 mb-2 bg-light">
                   <Form.Label className="small">
                     <strong>Slippage Tolerance</strong>
                   </Form.Label>
@@ -465,7 +468,7 @@ const Swap = () => {
               )}
             </Row>
 
-            <Row className="my-3">
+            <div className="my-3">
               {isSwapping ? (
                 <Spinner
                   animation="border"
@@ -474,6 +477,7 @@ const Swap = () => {
               ) : (
                 <Button
                   type="submit"
+                  className="w-100"
                   variant={
                     priceImpact > 10
                       ? "danger"
@@ -489,64 +493,64 @@ const Swap = () => {
                     : "Swap"}
                 </Button>
               )}
-              <div>
-                {/* Pool Base Price */}
-                <Form.Text muted>
-                  Pool Price:{" "}
-                  {price === 0
-                    ? "Select tokens"
-                    : `1 ${inputToken} = ${price.toFixed(6)} ${outputToken}`}
-                </Form.Text>
+            </div>
+            <div className="my-3">
+              {/* Pool Base Price */}
+              <Form.Text muted>
+                Pool Price:{" "}
+                {price === 0
+                  ? "Select tokens"
+                  : `1 ${inputToken} = ${price.toFixed(6)} ${outputToken}`}
+              </Form.Text>
 
-                {/* Your Effective Trade Price */}
-                {inputAmount > 0 && outputAmount > 0 && (
-                  <div className="mt-1">
-                    <Form.Text className="small">
-                      Your Rate: 1 {inputToken} ={" "}
-                      {(
-                        parseFloat(outputAmount) / parseFloat(inputAmount)
-                      ).toFixed(6)}{" "}
-                      {outputToken}
-                      <Badge
-                        bg={
-                          priceImpact > 5
-                            ? "danger"
-                            : priceImpact > 2
-                            ? "warning"
-                            : "success"
-                        }
-                        className="ms-2"
-                        title={`Price difference from pool rate. Large trades move the price ${
-                          priceImpact > 2 ? "significantly" : "slightly"
-                        }.`}
-                      >
-                        {priceImpact > 0.01
-                          ? `${priceImpact > price ? "+" : "-"}${Math.abs(
-                              ((parseFloat(outputAmount) /
-                                parseFloat(inputAmount) -
-                                price) /
-                                price) *
-                                100
-                            ).toFixed(2)}%`
-                          : "0.00%"}
-                      </Badge>
-                    </Form.Text>
-                  </div>
-                )}
+              {/* Your Effective Trade Price */}
+              {inputAmount > 0 && outputAmount > 0 && (
+                <div className="mt-1">
+                  <Form.Text className="small">
+                    Your Rate: 1 {inputToken} ={" "}
+                    {(
+                      parseFloat(outputAmount) / parseFloat(inputAmount)
+                    ).toFixed(6)}{" "}
+                    {outputToken}
+                    <Badge
+                      bg={
+                        priceImpact > 5
+                          ? "danger"
+                          : priceImpact > 2
+                          ? "warning"
+                          : "success"
+                      }
+                      className="ms-2"
+                      title={`Price difference from pool rate. Large trades move the price ${
+                        priceImpact > 2 ? "significantly" : "slightly"
+                      }.`}
+                    >
+                      {priceImpact > 0.01
+                        ? `${priceImpact > price ? "+" : "-"}${Math.abs(
+                            ((parseFloat(outputAmount) /
+                              parseFloat(inputAmount) -
+                              price) /
+                              price) *
+                              100
+                          ).toFixed(2)}%`
+                        : "0.00%"}
+                    </Badge>
+                  </Form.Text>
+                </div>
+              )}
 
-                {/* Educational Price Impact Explanation */}
-                {inputAmount > 0 && outputAmount > 0 && priceImpact > 1 && (
-                  <div className="mt-2">
-                    <div className="small text-muted border-start border-2 border-warning ps-2">
-                      <strong>Price Impact:</strong> Your trade is large enough
-                      to move the pool price.
-                      {priceImpact > 5 &&
-                        " Consider splitting into smaller trades to reduce slippage."}
-                    </div>
+              {/* Educational Price Impact Explanation */}
+              {inputAmount > 0 && outputAmount > 0 && priceImpact > 1 && (
+                <div className="mt-2">
+                  <div className="small text-muted border-start border-2 border-warning ps-2">
+                    <strong>Price Impact:</strong> Your trade is large enough to
+                    move the pool price.
+                    {priceImpact > 5 &&
+                      " Consider splitting into smaller trades to reduce slippage."}
                   </div>
-                )}
-              </div>
-            </Row>
+                </div>
+              )}
+            </div>
           </Form>
         ) : (
           <p

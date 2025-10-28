@@ -966,11 +966,15 @@ button:focus {
 .badge {
   font-family: "Space Grotesk", "Inter", sans-serif;
   font-weight: 600;
-  padding: 0.35em 0.75em;
+  padding: 0.25em 0.75em 0.35em;
   border-radius: var(--border-radius-sm);
   font-size: 0.875rem;
   letter-spacing: 0.01em;
   border: 1px solid transparent;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Light mode badges */
@@ -1059,6 +1063,18 @@ button:focus {
 
 .theme-toggle-btn .bi-moon-stars-fill {
   font-size: 1em;
+}
+
+/* Settings icon spacing and sizing */
+.bi-sliders2-vertical {
+  margin-right: 0.25rem;
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+/* Badge alignment with inline text */
+.badge {
+  vertical-align: middle;
 }
 
 /* ===== SPECIAL CONTAINERS & BORDERS ===== */
