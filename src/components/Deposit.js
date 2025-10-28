@@ -301,8 +301,22 @@ const Deposit = () => {
                   style={{ display: "block", margin: "0 auto" }}
                 />
               ) : (
-                <Button type="submit" className="w-100">
-                  Deposit
+                <Button
+                  type="submit"
+                  className="w-100"
+                  disabled={
+                    !token1Amount ||
+                    parseFloat(token1Amount) <= 0 ||
+                    !token2Amount ||
+                    parseFloat(token2Amount) <= 0
+                  }
+                >
+                  {!token1Amount ||
+                  parseFloat(token1Amount) <= 0 ||
+                  !token2Amount ||
+                  parseFloat(token2Amount) <= 0
+                    ? "Enter Amount"
+                    : "Deposit"}
                 </Button>
               )}
             </div>

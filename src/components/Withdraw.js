@@ -517,8 +517,14 @@ const Withdraw = () => {
                   style={{ display: "block", margin: "0 auto" }}
                 />
               ) : (
-                <Button type="submit" className="w-100">
-                  Withdraw
+                <Button
+                  type="submit"
+                  className="w-100"
+                  disabled={!amount || parseFloat(amount) <= 0}
+                >
+                  {!amount || parseFloat(amount) <= 0
+                    ? "Enter Amount"
+                    : "Withdraw"}
                 </Button>
               )}
             </div>
