@@ -1463,3 +1463,108 @@ hr {
 .card-body > *:nth-child(5) {
   animation: fadeIn 0.5s ease-out 0.3s both;
 }
+
+/* ============================================================
+   PAGINATION STYLES
+   ============================================================ */
+
+/* Dark theme pagination */
+[data-bs-theme="dark"] .pagination {
+  --bs-pagination-bg: rgba(30, 41, 59, 0.5);
+  --bs-pagination-border-color: rgba(129, 140, 248, 0.3);
+  --bs-pagination-hover-bg: rgba(129, 140, 248, 0.15);
+  --bs-pagination-hover-border-color: rgba(129, 140, 248, 0.5);
+  --bs-pagination-focus-bg: rgba(129, 140, 248, 0.15);
+  --bs-pagination-active-bg: var(--color-accent-primary);
+  --bs-pagination-active-border-color: var(--color-accent-primary);
+  --bs-pagination-disabled-bg: rgba(30, 41, 59, 0.3);
+  --bs-pagination-disabled-border-color: rgba(129, 140, 248, 0.1);
+  --bs-pagination-color: var(--color-text-primary);
+  --bs-pagination-hover-color: #ffffff;
+  --bs-pagination-focus-color: #ffffff;
+  --bs-pagination-disabled-color: var(--color-text-secondary);
+}
+
+[data-bs-theme="dark"] .page-link {
+  background: var(--bs-pagination-bg);
+  border-color: var(--bs-pagination-border-color);
+  color: var(--bs-pagination-color);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  transition: all var(--transition-base);
+  font-weight: 500;
+}
+
+[data-bs-theme="dark"] .page-link:hover:not(.disabled) {
+  background: var(--bs-pagination-hover-bg);
+  border-color: var(--bs-pagination-hover-border-color);
+  color: var(--bs-pagination-hover-color);
+  box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-bs-theme="dark"] .page-item.active .page-link {
+  background: var(--bs-pagination-active-bg);
+  border-color: var(--bs-pagination-active-border-color);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+}
+
+[data-bs-theme="dark"] .page-item.disabled .page-link {
+  background: var(--bs-pagination-disabled-bg);
+  border-color: var(--bs-pagination-disabled-border-color);
+  color: var(--bs-pagination-disabled-color);
+  opacity: 0.5;
+}
+
+/* Light theme pagination */
+[data-bs-theme="light"] .pagination {
+  --bs-pagination-bg: rgba(255, 255, 255, 0.85);
+  --bs-pagination-border-color: rgba(99, 102, 241, 0.35);
+  --bs-pagination-hover-bg: rgba(99, 102, 241, 0.08);
+  --bs-pagination-hover-border-color: rgba(99, 102, 241, 0.5);
+  --bs-pagination-focus-bg: rgba(99, 102, 241, 0.08);
+  --bs-pagination-active-bg: var(--color-accent-primary);
+  --bs-pagination-active-border-color: var(--color-accent-primary);
+  --bs-pagination-disabled-bg: rgba(255, 255, 255, 0.5);
+  --bs-pagination-disabled-border-color: rgba(99, 102, 241, 0.15);
+  --bs-pagination-color: var(--color-text-primary);
+  --bs-pagination-hover-color: #4338ca;
+  --bs-pagination-focus-color: #4338ca;
+  --bs-pagination-disabled-color: var(--color-text-secondary);
+}
+
+[data-bs-theme="light"] .page-link {
+  background: var(--bs-pagination-bg);
+  border-color: var(--bs-pagination-border-color);
+  color: var(--bs-pagination-color);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-width: 1.5px;
+  transition: all var(--transition-base);
+  font-weight: 500;
+}
+
+[data-bs-theme="light"] .page-link:hover:not(.disabled) {
+  background: var(--bs-pagination-hover-bg);
+  border-color: var(--bs-pagination-hover-border-color);
+  color: var(--bs-pagination-hover-color);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+[data-bs-theme="light"] .page-item.active .page-link {
+  background: var(--bs-pagination-active-bg);
+  border-color: var(--bs-pagination-active-border-color);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+[data-bs-theme="light"] .page-item.disabled .page-link {
+  background: var(--bs-pagination-disabled-bg);
+  border-color: var(--bs-pagination-disabled-border-color);
+  color: var(--bs-pagination-disabled-color);
+  opacity: 0.5;
+}
