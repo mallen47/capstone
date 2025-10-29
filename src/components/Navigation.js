@@ -1,3 +1,4 @@
+import { useState } from "react"
 import Navbar from "react-bootstrap/Navbar"
 import Button from "react-bootstrap/Button"
 import logo from "../logo.png"
@@ -14,6 +15,7 @@ const Navigation = () => {
   const amm = useSelector(state => state.amm.contract)
   const dispatch = useDispatch()
   const { theme, toggleTheme } = useTheme()
+  const [isHovered, setIsHovered] = useState(false)
 
   const connectHandler = async () => {
     const account = await loadAccount(dispatch)
@@ -37,6 +39,8 @@ const Navigation = () => {
           <Button
             variant="outline-secondary"
             onClick={toggleTheme}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             className="theme-toggle-btn"
             aria-label={`Switch to ${
               theme === "light" ? "dark" : "light"
@@ -52,7 +56,9 @@ const Navigation = () => {
           >
             <i
               className={
-                theme === "light" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill"
+                theme === "light"
+                  ? (isHovered ? "bi bi-moon-stars" : "bi bi-moon-stars-fill")
+                  : "bi bi-sun-fill"
               }
             ></i>
           </Button>
