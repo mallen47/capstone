@@ -864,6 +864,7 @@ input[type="number"] {
   min-height: 42px;
   padding: 0.5rem !important;
   border-radius: var(--border-radius-md);
+  margin-right: .75rem;
 }
 
 /* Light mode: Theme toggle button */
