@@ -1,12 +1,12 @@
+import { useState } from "react"
 import Navbar from "react-bootstrap/Navbar"
 import Button from "react-bootstrap/Button"
-import Form from "react-bootstrap/Form"
 import logo from "../logo.png"
 import { useSelector, useDispatch } from "react-redux"
 import Blockies from "react-blockies"
 import { loadAccount, loadBalances } from "../store/interactions"
 import { useTheme } from "../contexts/ThemeContext"
-import config from "../config.json"
+import NetworkDropdown from "./NetworkDropdown"
 
 const Navigation = () => {
   const account = useSelector(state => state.provider.account)
@@ -15,17 +15,11 @@ const Navigation = () => {
   const amm = useSelector(state => state.amm.contract)
   const dispatch = useDispatch()
   const { theme, toggleTheme } = useTheme()
+  const [isHovered, setIsHovered] = useState(false)
 
   const connectHandler = async () => {
     const account = await loadAccount(dispatch)
     await loadBalances(amm, tokens, account, dispatch)
-  }
-
-  const networkHandler = async e => {
-    await window.ethereum.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: e.target.value }],
-    })
   }
 
   return (
@@ -40,51 +34,71 @@ const Navigation = () => {
       <Navbar.Brand href="#">AMM</Navbar.Brand>
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
-        <div className="d-flex justify-content-end mt-3">
+        <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+          {/* Theme Toggle */}
           <Button
             variant="outline-secondary"
             onClick={toggleTheme}
-            className="me-3 theme-toggle-btn"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="theme-toggle-btn"
             aria-label={`Switch to ${
               theme === "light" ? "dark" : "light"
             } mode`}
+            style={{
+              width: "40px",
+              height: "40px",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <i
               className={
-                theme === "light" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill"
+                theme === "light"
+                  ? (isHovered ? "bi bi-moon-stars" : "bi bi-moon-stars-fill")
+                  : "bi bi-sun-fill"
               }
             ></i>
           </Button>
 
-          <Form.Select
-            aria-label="Network Selector"
-            value={config[chainId] ? `0x${chainId.toString(16)}` : `0`}
-            onChange={networkHandler}
-            style={{ maxWidth: "200px", marginRight: "20px" }}
-          >
-            <option value="0" disabled>
-              Select Network
-            </option>
-            <option value="0x7A69">Localhost</option>
-            <option value="0xAA36A7">Sepolia</option>
-          </Form.Select>
+          {/* Settings Group: Network Selection */}
+          <div className="nav-settings-group">
+            <NetworkDropdown chainId={chainId} />
+          </div>
 
-          {account ? (
-            <Navbar.Text className="d-flex align-items-center">
-              {account.slice(0, 5) + "..." + account.slice(38, 42)}
-              <Blockies
-                seed={account}
-                size={10}
-                scale={3}
-                color="#2187D0"
-                bgColor="#F1F2F9"
-                spotcolor="#767F92"
-                className="identicon mx-2"
-              ></Blockies>
-            </Navbar.Text>
-          ) : (
-            <Button onClick={connectHandler}>Connect</Button>
-          )}
+          {/* Wallet Connection Group */}
+          <div className="nav-wallet-group">
+            {account ? (
+              <Button
+                variant="outline-primary"
+                className="d-flex align-items-center gap-2 nav-account-btn"
+                style={{
+                  height: "40px",
+                  paddingLeft: "12px",
+                  paddingRight: "8px",
+                }}
+              >
+                <span className="account-address">
+                  {account.slice(0, 5) + "..." + account.slice(38, 42)}
+                </span>
+                <Blockies
+                  seed={account}
+                  size={10}
+                  scale={3}
+                  color="#2187D0"
+                  bgColor="#F1F2F9"
+                  spotcolor="#767F92"
+                  className="identicon"
+                ></Blockies>
+              </Button>
+            ) : (
+              <Button onClick={connectHandler} style={{ height: "40px" }}>
+                Connect Wallet
+              </Button>
+            )}
+          </div>
         </div>
       </Navbar.Collapse>
     </Navbar>
