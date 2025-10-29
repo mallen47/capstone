@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { HashRouter, Routes, Route } from "react-router-dom"
 import { Container } from "react-bootstrap"
-import { ToastContainer } from "react-toastify"
+import { ToastContainer, toast } from "react-toastify"
 import { ThemeProvider } from "../contexts/ThemeContext"
 import Navigation from "./Navigation"
 import {
@@ -19,6 +19,7 @@ import Withdraw from "./Withdraw"
 import Charts from "./Charts"
 import PoolStats from "./PoolStats"
 import Tabs from "./Tabs"
+import config from "../config.json"
 import "react-toastify/dist/ReactToastify.css"
 import "bootstrap-icons/font/bootstrap-icons.css"
 
@@ -28,33 +29,97 @@ function AppContent() {
   const { theme } = useTheme()
 
   const loadBlockchainData = async () => {
-    // Initiate provider
-    const provider = await loadProvider(dispatch)
-
-    // Fetch current network's chainId (e.g. hardhat: 31337, sepolia: 11155111)
-    const chainId = await loadNetwork(provider, dispatch)
-
-    // Reload page when network changes
-    window.ethereum.on("chainChanged", () => {
-      console.log("chain changed!")
-      window.location.reload()
-    })
-
-    // Fetch current account from Metamask when changed
-    window.ethereum.on("accountsChanged", async () => {
-      console.log("account changed!")
-      await loadAccount(dispatch)
-    })
-
-    // Initiate contracts
-    console.log("Loading tokens for chainId:", chainId)
     try {
+      // Initiate provider
+      const provider = await loadProvider(dispatch)
+
+      // Fetch current network's chainId (e.g. hardhat: 31337, sepolia: 11155111)
+      const chainId = await loadNetwork(provider, dispatch)
+
+      // Check if the network is supported
+      if (!config[chainId]) {
+        toast.error(
+          `Unsupported network. Please switch to Localhost or Sepolia Network in MetaMask.`,
+          {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        )
+        console.error("Unsupported network detected:", chainId)
+        return
+      }
+
+      // Reload page when network changes
+      window.ethereum.on("chainChanged", async () => {
+        console.log("Network changed, reloading...")
+        try {
+          const provider = await loadProvider(dispatch)
+          const newChainId = await loadNetwork(provider, dispatch)
+
+          // Check if new network is supported
+          if (!config[newChainId]) {
+            toast.error(
+              `Network switch error. Unsupported network detected. Please switch to Localhost or Sepolia Network.`,
+              {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              }
+            )
+            window.location.reload()
+            return
+          }
+
+          window.location.reload()
+        } catch (error) {
+          console.error("Error handling network change:", error)
+          toast.error(
+            `Network switch error. Please reconnect your wallet and try again.`,
+            {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          )
+          window.location.reload()
+        }
+      })
+
+      // Fetch current account from Metamask when changed
+      window.ethereum.on("accountsChanged", async () => {
+        console.log("Account changed!")
+        await loadAccount(dispatch)
+      })
+
+      // Initiate contracts
+      console.log("Loading tokens for chainId:", chainId)
       await loadTokens(provider, chainId, dispatch)
       console.log("Tokens loaded successfully")
       await loadAMM(provider, chainId, dispatch)
       console.log("AMM loaded successfully")
     } catch (error) {
-      console.error("Error loading contracts:", error)
+      console.error("Error loading blockchain data:", error)
+      toast.error(
+        `Failed to connect to blockchain. Please check MetaMask and try again.`,
+        {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      )
     }
   }
 

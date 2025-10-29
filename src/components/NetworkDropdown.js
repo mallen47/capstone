@@ -13,8 +13,10 @@ const NetworkDropdown = ({ chainId, onNetworkChange }) => {
     if (!chainId || !config[chainId]) {
       return "Select Network"
     }
-    const hexChainId = `0x${chainId.toString(16)}`
-    const network = networks.find(n => n.chainId === hexChainId)
+    const hexChainId = `0x${chainId.toString(16).toUpperCase()}`
+    const network = networks.find(
+      n => n.chainId.toLowerCase() === hexChainId.toLowerCase()
+    )
     return network ? network.name : "Unknown Network"
   }
 
@@ -44,7 +46,9 @@ const NetworkDropdown = ({ chainId, onNetworkChange }) => {
           key={network.chainId}
           eventKey={network.chainId}
           active={
-            config[chainId] && `0x${chainId.toString(16)}` === network.chainId
+            config[chainId] &&
+            `0x${chainId.toString(16)}`.toLowerCase() ===
+              network.chainId.toLowerCase()
           }
         >
           {network.name}
