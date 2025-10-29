@@ -355,7 +355,7 @@ const Swap = () => {
             </Row>
 
             {/* Price Impact and Slippage Settings */}
-            <Row className="mt-4 mb-3">
+            <Row className="mt-4 mb-5">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <small className="text-muted">
                   Price Impact:

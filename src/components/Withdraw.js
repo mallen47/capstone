@@ -276,7 +276,7 @@ const Withdraw = () => {
           >
             {/* LP Portfolio Analytics */}
             {shares && parseFloat(shares) > 0 && (
-              <Row className="mt-4 mb-3">
+              <Row className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <small className="text-muted">
                     <strong>LP Position:</strong>{" "}
@@ -479,7 +479,7 @@ const Withdraw = () => {
               </Row>
             )}
 
-            <Row>
+            <Row className="mb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <Form.Text muted>Shares: {shares}</Form.Text>
                 <Button
@@ -487,11 +487,15 @@ const Withdraw = () => {
                   variant="outline-secondary"
                   onClick={setMaxShares}
                   disabled={!shares || parseFloat(shares) === 0}
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.25rem 0.5rem",
+                  }}
                 >
                   Max
                 </Button>
               </div>
-              <InputGroup>
+              <InputGroup className="mb-3">
                 <Form.Control
                   type="number"
                   placeholder="0"
@@ -528,12 +532,12 @@ const Withdraw = () => {
                 </Button>
               )}
             </div>
-            <hr />
-            <Row>
-              <p>
+            <hr className="my-4" />
+            <Row className="mb-3">
+              <p className="mb-2">
                 <strong>DPC Balance:</strong> {balances[0]}
               </p>
-              <p>
+              <p className="mb-0">
                 <strong>USDK Balance:</strong> {balances[1]}
               </p>
             </Row>

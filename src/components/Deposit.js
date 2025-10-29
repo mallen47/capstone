@@ -4,11 +4,9 @@ import { useSelector, useDispatch } from "react-redux"
 import Card from "react-bootstrap/Card"
 import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
-import Col from "react-bootstrap/Col"
 import InputGroup from "react-bootstrap/InputGroup"
 import Spinner from "react-bootstrap/Spinner"
 import Button from "react-bootstrap/Button"
-import Badge from "react-bootstrap/Badge"
 import { addLiquidity, loadBalances } from "../store/interactions"
 import { depositReset } from "../store/reducers/amm"
 import { showToast } from "../utils/toastService"
@@ -219,7 +217,7 @@ const Deposit = () => {
           >
             {/* Pool Ratio Information */}
             {poolRatio && (
-              <div className="border rounded p-2 mb-3 bg-light text-center">
+              <div className="border rounded p-2 mb-4 bg-light text-center">
                 <small className="text-muted">
                   <strong>Current Pool Ratio:</strong>{" "}
                   {poolRatio.token1.toFixed(2)} {symbols[0]} :{" "}
@@ -228,7 +226,7 @@ const Deposit = () => {
               </div>
             )}
 
-            <Row>
+            <Row className="mb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <Form.Text muted>Balance: {balances[0]}</Form.Text>
                 <Button
@@ -236,6 +234,10 @@ const Deposit = () => {
                   variant="outline-secondary"
                   onClick={setMaxToken1}
                   disabled={!balances[0] || parseFloat(balances[0]) === 0}
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.25rem 0.5rem",
+                  }}
                 >
                   Max
                 </Button>
@@ -260,7 +262,7 @@ const Deposit = () => {
                 </InputGroup.Text>
               </InputGroup>
             </Row>
-            <Row className="my-3">
+            <Row>
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <Form.Text muted>Balance: {balances[1]}</Form.Text>
                 <Button
@@ -268,11 +270,15 @@ const Deposit = () => {
                   variant="outline-secondary"
                   onClick={setMaxToken2}
                   disabled={!balances[1] || parseFloat(balances[1]) === 0}
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.25rem 0.5rem",
+                  }}
                 >
                   Max
                 </Button>
               </div>
-              <InputGroup>
+              <InputGroup className="mb-4">
                 <Form.Control
                   type="number"
                   placeholder="0.0"
