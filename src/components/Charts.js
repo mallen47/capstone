@@ -106,66 +106,99 @@ const Charts = () => {
           <Table striped bordered hover>
             <thead>
               <tr>
+                <th>Type</th>
                 <th>Transaction Hash</th>
-                <th>Token Give</th>
-                <th>Amount Give</th>
-                <th>Token Get</th>
-                <th>Amount Get</th>
+                <th>{symbols[0]} Amount</th>
+                <th>{symbols[1]} Amount</th>
                 <th>User</th>
                 <th>Time</th>
               </tr>
             </thead>
             <tbody>
               {currentSwaps.length > 0 ? (
-                currentSwaps.map((swap, index) => (
-                  <tr key={index}>
-                    <td>
-                      {swap.hash.slice(0, 5) + "..." + swap.hash.slice(61, 66)}
-                    </td>
-                    <td>
-                      {swap.args.tokenGive === tokens[0].address
-                        ? symbols[0]
-                        : symbols[1]}
-                    </td>
-                    <td>
-                      {ethers.utils.formatUnits(
-                        swap.args.tokenGiveAmount.toString(),
-                        "ether"
-                      )}
-                    </td>
-                    <td>
-                      {swap.args.tokenGet === tokens[0].address
-                        ? symbols[0]
-                        : symbols[1]}
-                    </td>
-                    <td>
-                      {ethers.utils.formatUnits(
-                        swap.args.tokenGetAmount.toString(),
-                        "ether"
-                      )}
-                    </td>
-                    <td>
-                      {swap.args.user.slice(0, 5) +
-                        "..." +
-                        swap.args.user.slice(38, 42)}
-                    </td>
-                    <td>
-                      {new Date(
-                        Number(swap.args.timestamp.toString() + "000")
-                      ).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        second: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))
+                currentSwaps.map((transaction, index) => {
+                  // Determine amounts based on transaction type
+                  let token1Amount, token2Amount
+
+                  if (transaction.type === "Swap") {
+                    // For swaps, show tokenGive and tokenGet
+                    const givesToken1 =
+                      transaction.args.tokenGive === tokens[0].address
+                    token1Amount = givesToken1
+                      ? ethers.utils.formatUnits(
+                          transaction.args.tokenGiveAmount.toString(),
+                          "ether"
+                        )
+                      : ethers.utils.formatUnits(
+                          transaction.args.tokenGetAmount.toString(),
+                          "ether"
+                        )
+                    token2Amount = givesToken1
+                      ? ethers.utils.formatUnits(
+                          transaction.args.tokenGetAmount.toString(),
+                          "ether"
+                        )
+                      : ethers.utils.formatUnits(
+                          transaction.args.tokenGiveAmount.toString(),
+                          "ether"
+                        )
+                  } else {
+                    // For deposits and withdrawals, show token1Amount and token2Amount
+                    token1Amount = ethers.utils.formatUnits(
+                      transaction.args.token1Amount.toString(),
+                      "ether"
+                    )
+                    token2Amount = ethers.utils.formatUnits(
+                      transaction.args.token2Amount.toString(),
+                      "ether"
+                    )
+                  }
+
+                  return (
+                    <tr key={index}>
+                      <td>
+                        <span
+                          className={`badge ${
+                            transaction.type === "Swap"
+                              ? "bg-primary"
+                              : transaction.type === "Deposit"
+                              ? "bg-success"
+                              : "bg-warning"
+                          }`}
+                        >
+                          {transaction.type}
+                        </span>
+                      </td>
+                      <td>
+                        {transaction.hash.slice(0, 5) +
+                          "..." +
+                          transaction.hash.slice(61, 66)}
+                      </td>
+                      <td>{parseFloat(token1Amount).toFixed(4)}</td>
+                      <td>{parseFloat(token2Amount).toFixed(4)}</td>
+                      <td>
+                        {transaction.args.user.slice(0, 5) +
+                          "..." +
+                          transaction.args.user.slice(38, 42)}
+                      </td>
+                      <td>
+                        {new Date(
+                          Number(transaction.args.timestamp.toString() + "000")
+                        ).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                          second: "numeric",
+                        })}
+                      </td>
+                    </tr>
+                  )
+                })
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center text-muted py-4">
+                  <td colSpan="6" className="text-center text-muted py-4">
                     No transactions found
                   </td>
                 </tr>

@@ -223,15 +223,60 @@ export const removeLiquidity = async (provider, amm, shares, dispatch) => {
 }
 
 //////////////////////////////
-// Load all swaps
+// Load all transactions (swaps, deposits, withdrawals)
 
 export const loadAllSwaps = async (provider, amm, dispatch) => {
-  // Fetch swaps from Blockchain
-  const block = await provider.getBlockNumber()
-  const swapStream = await amm.queryFilter("Swap", 0, block)
-  const swaps = swapStream.map(event => {
-    return { hash: event.transactionHash, args: event.args }
-  })
+  try {
+    const block = await provider.getBlockNumber()
 
-  dispatch(swapsLoaded(swaps))
+    // Fetch all three event types
+    const [swapStream, depositStream, withdrawStream] = await Promise.all([
+      amm.queryFilter("Swap", 0, block),
+      amm.queryFilter("LiquidityAdded", 0, block),
+      amm.queryFilter("LiquidityRemoved", 0, block),
+    ])
+
+    // Map swaps with type
+    const swaps = swapStream.map(event => {
+      return {
+        type: "Swap",
+        hash: event.transactionHash,
+        args: event.args,
+        blockNumber: event.blockNumber,
+      }
+    })
+
+    // Map deposits with type
+    const deposits = depositStream.map(event => {
+      return {
+        type: "Deposit",
+        hash: event.transactionHash,
+        args: event.args,
+        blockNumber: event.blockNumber,
+      }
+    })
+
+    // Map withdrawals with type
+    const withdrawals = withdrawStream.map(event => {
+      return {
+        type: "Withdrawal",
+        hash: event.transactionHash,
+        args: event.args,
+        blockNumber: event.blockNumber,
+      }
+    })
+
+    // Combine all transactions and sort by timestamp (most recent first)
+    const allTransactions = [...swaps, ...deposits, ...withdrawals].sort(
+      (a, b) => {
+        const timeA = parseInt(a.args.timestamp.toString())
+        const timeB = parseInt(b.args.timestamp.toString())
+        return timeB - timeA // Descending order (newest first)
+      }
+    )
+
+    dispatch(swapsLoaded(allTransactions))
+  } catch (error) {
+    console.error("Error loading transactions:", error)
+  }
 }

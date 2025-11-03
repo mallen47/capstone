@@ -897,7 +897,7 @@ input[type="number"] {
   min-height: 42px;
   padding: 0.5rem !important;
   border-radius: var(--border-radius-md);
-  margin-right: .75rem;
+  margin-right: 0.75rem;
 }
 
 /* Light mode: Theme toggle button */
@@ -991,9 +991,9 @@ button:focus {
 
 [data-bs-theme="light"] .nav-pills .nav-link.active {
   color: #ffffff !important;
-  background-color: var(--color-accent-primary) !important;
+  background: var(--gradient-primary) !important;
   border: solid 1.5px;
-  border-color: var(--color-accent-primary) !important;
+  border-color: transparent !important;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
   font-weight: 600;
 }
@@ -1013,9 +1013,9 @@ button:focus {
 
 [data-bs-theme="dark"] .nav-pills .nav-link.active {
   color: #ffffff !important;
-  background-color: var(--color-accent-primary) !important;
+  background: var(--gradient-primary) !important;
   border: solid 1px;
-  border-color: var(--color-accent-primary) !important;
+  border-color: transparent !important;
   box-shadow: 0 2px 8px rgba(129, 140, 248, 0.4);
 }
 
@@ -1296,7 +1296,7 @@ button:focus {
 hr {
   border-color: var(--color-border-medium);
   opacity: 1;
-  margin: 1.5rem 0;
+  margin: 0.25rem 0;
 }
 
 /* Toast customization for Bootstrap integration */
@@ -1439,6 +1439,24 @@ textarea:focus {
 .navbar-brand:hover {
   transform: scale(1.05);
   filter: brightness(1.1);
+}
+
+/* Navbar alignment for larger logo */
+.navbar {
+  align-items: center;
+  min-height: auto;
+  padding-top: 1rem !important;
+  padding-bottom: 0 !important;
+}
+
+.navbar .navbar-collapse {
+  align-items: center;
+}
+
+/* Keep navbar buttons compact */
+.navbar .d-flex.align-items-center.gap-2 {
+  height: 40px;
+  margin-bottom: 0;
 }
 
 /* Badge hover effects */

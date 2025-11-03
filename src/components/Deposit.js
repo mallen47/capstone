@@ -282,6 +282,7 @@ const Deposit = () => {
                 <Form.Control
                   type="number"
                   placeholder="0.0"
+                  min="0.0"
                   step="any"
                   id="token2"
                   onChange={e => {
