@@ -3,8 +3,8 @@ import { createSelector } from "reselect"
 const tokens = state => state.tokens.contracts
 const swaps = state => state.amm.swaps
 
-export const chartSelector = createSelector(swaps, tokens, (swaps, tokens) => {
-  if (!tokens[0] || !tokens[1] || !swaps || swaps.length === 0) {
+export const chartSelector = createSelector(swaps, tokens, (allTransactions, tokens) => {
+  if (!tokens[0] || !tokens[1] || !allTransactions || allTransactions.length === 0) {
     return {
       series: [{
         name: "Rate",
@@ -14,37 +14,39 @@ export const chartSelector = createSelector(swaps, tokens, (swaps, tokens) => {
     }
   }
 
-  // Filter by selected tokens
-  swaps = swaps.filter(
+  // Separate swaps from other transactions for the price chart
+  const onlySwaps = allTransactions.filter(t => t.type === "Swap")
+
+  // Filter swaps by selected tokens for price chart
+  let filteredSwaps = onlySwaps.filter(
     s =>
       s.args.tokenGet === tokens[0].address ||
       s.args.tokenGet === tokens[1].address
   )
 
-  swaps = swaps.filter(
+  filteredSwaps = filteredSwaps.filter(
     s =>
       s.args.tokenGive === tokens[0].address ||
       s.args.tokenGive === tokens[1].address
   )
 
   // sort swaps by date ascending to compare history
-  swaps = swaps.sort((a, b) => a.args.timestamp - b.args.timestamp)
+  filteredSwaps = filteredSwaps.sort((a, b) => a.args.timestamp - b.args.timestamp)
 
   // we don't have the price natively, it must be calculated from the event
-  swaps = swaps.map(s => decorateSwap(s))
+  filteredSwaps = filteredSwaps.map(s => decorateSwap(s))
 
-  // Fetch prices
-  const prices = swaps.map(s => s.rate)
+  // Fetch prices for chart
+  const prices = filteredSwaps.map(s => s.rate)
 
-  // sort by timestamp descending
-  swaps = swaps.sort((a, b) => b.args.timestamp - a.args.timestamp)
-
+  // Return all transactions (swaps, deposits, withdrawals) for the table
+  // Already sorted by timestamp descending from interactions.js
   return {
     series: [
       {
         name: "Rate",
         data: prices,
-        swaps: swaps,
+        swaps: allTransactions, // Return ALL transactions, not just swaps
       },
     ],
   }
