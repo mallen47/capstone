@@ -1,7 +1,6 @@
 import { useState } from "react"
 import Navbar from "react-bootstrap/Navbar"
 import Button from "react-bootstrap/Button"
-import logo from "../logo.png"
 import { useSelector, useDispatch } from "react-redux"
 import Blockies from "react-blockies"
 import { loadAccount, loadBalances } from "../store/interactions"
@@ -23,15 +22,16 @@ const Navigation = () => {
   }
 
   return (
-    <Navbar className="my-3" expand="lg">
-      <img
-        alt="logo"
-        src={logo}
-        width="40"
-        height="40"
-        className="d-inline-block align-top mx-3"
-      />
-      <Navbar.Brand href="#">AMM</Navbar.Brand>
+    <Navbar className="mb-0" expand="lg">
+      <div className="d-flex align-items-center">
+        <img
+          alt="logo"
+          src={theme === "light" ? "/logoLight.svg" : "/logoDark.svg"}
+          height="80"
+          className="d-inline-block"
+          style={{ marginRight: "2rem" }}
+        />
+      </div>
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id="nav" className="justify-content-end">
         <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
@@ -57,7 +57,9 @@ const Navigation = () => {
             <i
               className={
                 theme === "light"
-                  ? (isHovered ? "bi bi-moon-stars" : "bi bi-moon-stars-fill")
+                  ? isHovered
+                    ? "bi bi-moon-stars"
+                    : "bi bi-moon-stars-fill"
                   : "bi bi-sun-fill"
               }
             ></i>
